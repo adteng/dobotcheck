@@ -2,7 +2,7 @@
 #include "OperDobot.h"
 
 //OperDobot m_OperDobot;
-unsigned int __stdcall ReadCom(void * param);
+
 OperDobot::OperDobot()
 {
 	bIsOpen = false;
@@ -13,117 +13,72 @@ OperDobot::OperDobot()
 	memset(pDWS->cErrInfo,0,sizeof(pDWS->cErrInfo));
 	m_CMDList.clear();
 	m_BaudRate = CBR_9600;
-};
+}
 
 OperDobot::~OperDobot()
 {
 	delete pDWS;
-};
+}
 
 bool OperDobot::OpenCom()
 {
 	if(!bIsOpen)
 	{
 		//打开串口
-		int nRet = Open(m_strCom);
-		if(nRet < 0)
+		int nRet = OpenComm(m_strCom.c_str(),m_BaudRate);
+		if(nRet != 1)
 		{
-			strErrInfo = "OPEN "+m_strCom+" error! " + GetErrInfo();
+			strErrInfo = "OPEN ";
+			strErrInfo += m_strCom;
+			strErrInfo += " error! ";
+			strErrInfo += GetErrInfo();
 			(*logInfo)(strErrInfo.c_str());
-			memset(pDWS->cErrInfo,0,sizeof(pDWS->cErrInfo));sprintf(pDWS->cErrInfo,("Code=001,"+strErrInfo).c_str());
+			memset(pDWS->cErrInfo,0,sizeof(pDWS->cErrInfo));sprintf(pDWS->cErrInfo,"Code=001,%s",strErrInfo.c_str());
 			return bIsOpen;
 		}
 		bIsOpen = true;
 		lRecv = 0;
 		bStatus = false;
 	}
-	string str = "open " + m_strCom + " succeed";
+	string str = "open ";
+	str +=  m_strCom;
+	str += " succeed";
 	(*logInfo)(str.c_str());
 	return bIsOpen;
-};
+}
 
 void OperDobot::SetCOM(const string& strCom)
 {
 //	memset(&m_DobotOrder,0,sizeof(DobotOrder));
-	m_strCom = strCom;
-	return ;
-};
+	m_strCom = strCom.c_str();
+}
 
 int OperDobot::ReadFromDobot()
 {
-	int i,nRet;
+	int i,iLen;
 	if(!bStatus)
 	{
-		byte byTmp[DOBOTDATABUFFERSIZE*2];
-
 		memset(byteDobot2PCData,0,DOBOTDATABUFFERSIZE+1);
-		for(lRecv=0;lRecv<4;lRecv++)
+		int iTotal = 0;
+		while(iTotal < DOBOTDATABUFFERSIZE)
 		{
-			if((nRet = byteReadData(byteDobot2PCData,DOBOTDATABUFFERSIZE)) < 0)
+			iLen = ReadComm(byteDobot2PCData+iTotal,DOBOTDATABUFFERSIZE-iTotal);
+			if(iLen <= 0)
 			{
-				strErrInfo = "Read SerialPort Timeout! " + GetErrInfo();
-				theLog<<strErrInfo<<ende;(*logInfo)(strErrInfo.c_str());
-				memset(pDWS->cErrInfo,0,sizeof(pDWS->cErrInfo));sprintf(pDWS->cErrInfo,("Code=002,"+strErrInfo).c_str());
+				strErrInfo = "Read SerialPort Timeout! ";
+				(*logInfo)(strErrInfo.c_str());
 				return -1;
 			}
-			//Sleep(100);
-		}
-		memcpy(byTmp,byteDobot2PCData,DOBOTDATABUFFERSIZE);
-		if((nRet = byteReadData(byteDobot2PCData,DOBOTDATABUFFERSIZE)) < 0)
-		{
-			strErrInfo = "Read SerialPort Timeout! " + GetErrInfo();
-			//theLog<<strErrInfo<<ende;
-			(*logInfo)(strErrInfo.c_str());
-			return -1;
-		}
-		memcpy(byTmp+DOBOTDATABUFFERSIZE,byteDobot2PCData,DOBOTDATABUFFERSIZE);
-		if((byTmp[DOBOTDATABUFFERSIZE] == 0xA5) && (byTmp[DOBOTDATABUFFERSIZE*2-1] == 0x5A))//从1开始，确保取到最后一条
-		{
-			m_DobotAndWinStatus.m_DS = (DobotStatus &)byTmp[1];
-			bStatus = true;
-		}else{
-			for(i=(DOBOTDATABUFFERSIZE-1);i>0;i--)
-			{
-				if((byTmp[i] == 0xA5) && (byTmp[DOBOTDATABUFFERSIZE+i-1] == 0x5A))
-				{
-					theDobotStatusCritical.Lock();
-					m_DobotAndWinStatus.m_DS = (DobotStatus &)byTmp[i];
-					theDobotStatusCritical.Unlock();
-					//Sleep(60);
-					if((nRet = byteReadData(byteDobot2PCData,i)) < 0)//丢弃
-					{
-						strErrInfo = "Code=200,Read SerialPort Timeout! " + GetErrInfo();
-						theLog<<strErrInfo<<ende;(*logInfo)(strErrInfo.c_str());
-						return -1;
-					}
-					bStatus = true;
-					break;
-				}
-			}
-		}
-	}else{
-		//Sleep(100);
-		memset(byteDobot2PCData,0,DOBOTDATABUFFERSIZE+1);
-		if((nRet = byteReadData(byteDobot2PCData,DOBOTDATABUFFERSIZE)) < 0)
-		{
-			strErrInfo = "Read SerialPort Timeout! " + GetErrInfo();
-			theLog<<strErrInfo<<ende;(*logInfo)(strErrInfo.c_str());
-			 (*logInfo)(strErrInfo.c_str());
-			return -1;
+			iTotal += iLen;
 		}
 		if((byteDobot2PCData[0] == 0xA5) && (byteDobot2PCData[DOBOTDATABUFFERSIZE-1] == 0x5A))
 		{
 			theDobotStatusCritical.Lock();
-			//m_DobotAndWinStatus.m_DS = (DobotStatus &)byteDobot2PCData[0];
 			memcpy(&m_DobotAndWinStatus.m_DS,byteDobot2PCData,DOBOTDATABUFFERSIZE);
 			theDobotStatusCritical.Unlock();
-//			m_DobotAndWinStatus.nLooped = 0;
 		}else{
 			char sLog[128] = {0};
-			sprintf(sLog,"%s,%d,%0x,%0x","COM Error! len,a,b=",nRet,byteDobot2PCData[0],byteDobot2PCData[DOBOTDATABUFFERSIZE-1]);
-			//theLogCritical.Lock();
-			//theLog<<strErrInfo<<ende;
-			//theLog<<"COM Error! ReConnect Now......"<<ende;
+			sprintf(sLog,"%s,%d,%0x,%0x","COM Error! len,a,b=",iLen,byteDobot2PCData[0],byteDobot2PCData[DOBOTDATABUFFERSIZE-1]);
 			(*logInfo)(sLog);
 			//theLogCritical.Unlock();
 			return -9;
@@ -135,15 +90,10 @@ int OperDobot::SendOrder2Dobot(DobotOrder &order)
 {
 	if((order.cHead[0] == 0xA5) && (order.cEnd[0] = 0x5A))
 	{
-		int nRet = byteSendData(&order.cHead[0],DOBOTDATABUFFERSIZE);
+		int nRet = WriteComm(&order.cHead[0],DOBOTDATABUFFERSIZE);
 		if(nRet < 0)
 		{
-			strErrInfo = "byteSendData error! Code="+IToString(nRet) + " " + GetErrInfo();
-			//theLogCritical.Lock();
-			//theLog<<"Code=100,byteSendData:"<<strErrInfo<<ende; 
 			logInfo("byteSendData data failure");
-			//theLogCritical.Unlock();
-			//theDobotOrderCritical.Unlock();
 			return -2;
 		}
 	}
@@ -449,7 +399,7 @@ unsigned int __stdcall ReadCom(void * param)
 			Opd->logInfo("read data failure");
 			if(nRet==-9)
 			{
-				Opd->CloseCom();
+				Opd->CloseComm();
 				Sleep(2000);
 				//Opd->m_bRunning = true;
 				if(!Opd->OpenCom())
@@ -471,20 +421,20 @@ unsigned int __stdcall ReadCom(void * param)
 		static int iT = 0;
 		float f1,f2,f3,f4,f5,f6,f7,f8,f9,f10;
 		Opd->theDobotStatusCritical.Lock();
-		f1 = Hex_To_Decimal(Opd->m_DobotAndWinStatus.m_DS.cX,4);
-		f2 = Hex_To_Decimal(Opd->m_DobotAndWinStatus.m_DS.cY,4);
-		f3 = Hex_To_Decimal(Opd->m_DobotAndWinStatus.m_DS.cZ,4);
-		f4 = Hex_To_Decimal(Opd->m_DobotAndWinStatus.m_DS.cR,4);
-		f5 = Hex_To_Decimal(Opd->m_DobotAndWinStatus.m_DS.cBaseAngel,4);
-		f6 = Hex_To_Decimal(Opd->m_DobotAndWinStatus.m_DS.cLongAngel,4);
-		f7 = Hex_To_Decimal(Opd->m_DobotAndWinStatus.m_DS.cShortAngel,4);
-		f8 = Hex_To_Decimal(Opd->m_DobotAndWinStatus.m_DS.cPawAngel,4);
-		f9 = Hex_To_Decimal(Opd->m_DobotAndWinStatus.m_DS.cIsGrip,4);
-		f10 = Hex_To_Decimal(Opd->m_DobotAndWinStatus.m_DS.cGripperAngel,4);
+		f1 = Opd->Hex_To_Decimal(Opd->m_DobotAndWinStatus.m_DS.cX,4);
+		f2 = Opd->Hex_To_Decimal(Opd->m_DobotAndWinStatus.m_DS.cY,4);
+		f3 = Opd->Hex_To_Decimal(Opd->m_DobotAndWinStatus.m_DS.cZ,4);
+		f4 = Opd->Hex_To_Decimal(Opd->m_DobotAndWinStatus.m_DS.cR,4);
+		f5 = Opd->Hex_To_Decimal(Opd->m_DobotAndWinStatus.m_DS.cBaseAngel,4);
+		f6 = Opd->Hex_To_Decimal(Opd->m_DobotAndWinStatus.m_DS.cLongAngel,4);
+		f7 = Opd->Hex_To_Decimal(Opd->m_DobotAndWinStatus.m_DS.cShortAngel,4);
+		f8 = Opd->Hex_To_Decimal(Opd->m_DobotAndWinStatus.m_DS.cPawAngel,4);
+		f9 = Opd->Hex_To_Decimal(Opd->m_DobotAndWinStatus.m_DS.cIsGrip,4);
+		f10 = Opd->Hex_To_Decimal(Opd->m_DobotAndWinStatus.m_DS.cGripperAngel,4);
 		if(iT++ < 5) Opd->m_DobotStartStatus = Opd->m_DobotAndWinStatus.m_DS;
 		Opd->theDobotStatusCritical.Unlock();
-		sprintf(sLog,"%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f",f1,f2,f3,f4,f5,f6,f7,f8,f9,f10);
-		Opd->logInfo(sLog);
+		//sprintf(sLog,"%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f",f1,f2,f3,f4,f5,f6,f7,f8,f9,f10);
+		//Opd->logInfo(sLog);
 		Opd->ShowDobotStatus(f1,f2,f3,f4,f5,f6,f7,f8,f9,f10);
 		Opd->SendOrderFromList();
 		if(Opd->GetVersion() > 1) 
@@ -492,10 +442,145 @@ unsigned int __stdcall ReadCom(void * param)
 		else
 			Sleep(10);
 	}
-	Opd->CloseCom();
+	Opd->CloseComm();
 
 //	_endthreadex(0);
 
 	return 0;
 }
 
+
+float OperDobot::Hex_To_Decimal(unsigned char *Byte, int num)//十六进制到浮点数
+{
+	// char cByte[4];//方法一
+	// for (int i=0;i<num;i++)
+	// {
+	// cByte[i] = Byte[i];
+	// }
+	// 
+	// float pfValue=*(float*)&cByte;
+	//return pfValue;
+
+	return *((float*)Byte);//方法二
+
+}
+void OperDobot::FloatToByte(float floatNum, unsigned char* byteArry)////浮点数到十六进制转换2
+{
+	char* pchar = (char*)&floatNum;
+	for (int i = 0;i<sizeof(float);i++)
+	{
+		*byteArry = *pchar;
+		pchar++;
+		byteArry++;
+	}
+}
+void OperDobot::stringToHEX(const string& strTmp,unsigned char * ucHEX,int nstrLen)
+{
+	unsigned char ucTmp;
+	char c;
+	int nTmp=0,nTmp1,nTmp2=0;
+	int nSize ;
+	if(nstrLen == 0)
+		nSize = strTmp.size();
+	else
+		nSize = nstrLen;
+	if(nSize <= 0)
+		return ;
+
+	unsigned char *ucRet = new unsigned char[nSize];
+	memset(ucRet,0,nSize);
+	if(nSize == 1)
+	{
+		memcpy(&c,strTmp.substr(0,1).c_str(),1);
+		charToHEX(c,nTmp);
+		ucRet[0] = nTmp;
+		memcpy(ucHEX,&ucRet,1);
+		delete [] ucRet;
+		ucRet = NULL;
+		return;
+	}
+	for(int i=0;i<nSize;i++)
+	{
+		memcpy(&c,strTmp.substr(i,1).c_str(),1);
+		charToHEX(c,nTmp1);
+		i++;
+		memcpy(&c,strTmp.substr(i,1).c_str(),1);
+		charToHEX(c,nTmp2);
+		nTmp1 = nTmp1 << 4;
+		ucTmp = nTmp1 + nTmp2;
+		ucRet[nTmp] = ucTmp;
+		nTmp ++;
+	}
+	memcpy(ucHEX,ucRet,nTmp);
+	delete [] ucRet;
+	ucRet = NULL;
+	return ;
+}
+void OperDobot::charToHEX(char c,int& ucTmp)
+{
+	char a=c;
+	switch(a)
+	{
+	case 'a':
+	case 'A':
+		ucTmp = 10;//'A'
+		break;
+	case 'b':
+	case 'B':
+		ucTmp = 11;//'B'
+		break;
+	case 'c':
+	case 'C':
+		ucTmp = 12;//'C'
+		break;
+	case 'd':
+	case 'D':
+		ucTmp = 13;//'D'
+		break;
+	case 'e':
+	case 'E':
+		ucTmp = 14;//'E'
+		break;
+	case 'f':
+	case 'F':
+		ucTmp = 15;//'F'
+		break;
+	default:
+		ucTmp = atoi(&c);
+		break;
+	}
+}
+
+
+string& OperDobot::strLTrim(string& strValue)
+{
+	while (strValue.begin() != strValue.end() && *strValue.begin() == ' ')
+	{
+		strValue.erase(strValue.begin());
+	}
+	return strValue;
+}
+
+string& OperDobot::strRTrim(string& strValue)
+{
+	while (strValue.begin() != strValue.end() && *(strValue.end() - 1) == ' ')
+	{
+		strValue.erase(strValue.end() - 1);
+	}
+	return strValue;
+}
+
+string& OperDobot::strTrim(string& strValue)
+{
+	return strRTrim(strLTrim(strValue));
+}
+string OperDobot::IToString(const int& nTmp,int nLen)
+{
+	string strTmp;
+	char tmp[20];
+	sprintf(tmp, "%d", nTmp);
+	strTmp = tmp;
+	if(nLen > strTmp.size())
+		strTmp.insert(0,"0000000000000000000",nLen - strTmp.size());
+	return strTmp;
+}

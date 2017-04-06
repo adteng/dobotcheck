@@ -1,28 +1,11 @@
 #include "StdAfx.h"
 #include "OperDobot2.h"
-#include "stdint.h"
 
-typedef struct tagPTPCmd {
-uint8_t ptpMode;
-float x;
-float y;
-float z;
-float r;
-} PTPCmd;
-typedef struct tagPose {
-float x; //机械臂坐标系x
-float y; //机械臂坐标系y
-float z; //机械臂坐标系z
-float r; //机械臂坐标系r
-float jointAngle[4]; //机械臂4 轴角度
-} Pose;
 unsigned int __stdcall SendGetPoseData(void * param);
+unsigned int __stdcall ReadData(void * param);
 OperDobot2::OperDobot2(void)
 {
 	m_BaudRate = CBR_115200;
-	//unsigned int nThreadAddr;
-	//HANDLE	hSession = (HANDLE)_beginthreadex(0, 0, SendGetPoseData, this, 0, &nThreadAddr);
-	//if(hSession) CloseHandle( hSession );
 }
 OperDobot2::~OperDobot2(void)
 {
@@ -44,11 +27,11 @@ void OperDobot2::SendGetPoseOrder()
 	}
 	cmd[5] = 256 - c;
 	m_csList.Lock();
-	int nRet = byteSendData(cmd,6);
+	int nRet = WriteComm(cmd,6);
 	m_csList.Unlock();
-	if(nRet < 0)
+	if(nRet !=6 )
 	{
-		logInfo("byteSendData data failure");
+		logInfo("byteSendData  SendGetPoseOrder data failure");
 	}
 	/*
 	for(int i = 0; i < 6; i++)
@@ -85,11 +68,15 @@ void OperDobot2::Move2AbsolutePosition(const CDobotPoint &pt,float angle)
 	}
 	cmd[22] = 256 - c;
 	m_csList.Lock();
-	int nRet = byteSendData(cmd,23);
+	int nRet = WriteComm(cmd,23);
 	m_csList.Unlock();
-	if(nRet < 0)
+	if(nRet < 23)
 	{
 		logInfo("byteSendData data failure");
+	}
+	else if(nRet == 23)
+	{
+		logInfo("byteSendData data succeed");
 	}
 	for(int i = 0; i < 23; i++)
 	{
@@ -97,12 +84,13 @@ void OperDobot2::Move2AbsolutePosition(const CDobotPoint &pt,float angle)
 	}
 	TRACE("\n");
 	delete [] cmd;
+	
 	int iLoop = 0;
 	while(1)
 	{
 		if(OperDobot::IsSameDobotPoint(pt,GetCurrentAbsolutePosition())) break;
 		if(iLoop++ > 1200) break;
-		Sleep(5);
+		Sleep(10);
 	}
 }
 
@@ -131,7 +119,7 @@ void OperDobot2::SetGrab(bool b)
 	}
 	cmd[7] = 256 - c;
 	m_csList.Lock();
-	int nRet = byteSendData(cmd,8);
+	int nRet = WriteComm(cmd,8);
 	m_csList.Unlock();
 	delete [] cmd;
 }
@@ -158,23 +146,15 @@ void OperDobot2::SetSpeed(float f1,float f2,float f3,float f4,float f5,float f6,
 	}
 	cmd[37] = 256 - c;
 	m_csList.Lock();
-	int nRet = byteSendData(cmd,38);
+	int nRet = WriteComm(cmd,38);
 	m_csList.Unlock();
 	delete [] cmd;
-}
-void OperDobot2::SendOrderFromList()
-{
-	//if(!m_bHavingRecvData)
-	SendGetPoseOrder();
 }
 int OperDobot2::ReadFromDobot()
 {
 	int iRet = 0;
 	if(!bStatus)
 	{
-
-//while(1)
-//{
 		byte head[3] = {0};
 		memset(head,0,3);
 		int iTotalLen = 3;
@@ -182,7 +162,7 @@ int OperDobot2::ReadFromDobot()
 		while(iRecvLen < 3)
 		{
 			int iLen = 0;
-			if((iLen = byteReadData(head + iRecvLen,iTotalLen-iRecvLen)) < 0)
+			if((iLen = ReadComm(head + iRecvLen,iTotalLen-iRecvLen)) < 0)
 			{
 				(*logInfo)("read data head err");
 				return -9;
@@ -202,7 +182,7 @@ int OperDobot2::ReadFromDobot()
 		while(iRecvLen < iTotalLen)
 		{
 			int iLen = 0;
-			if((iLen = byteReadData(pData + iRecvLen,iTotalLen-iRecvLen)) <= 0)
+			if((iLen = ReadComm(pData + iRecvLen,iTotalLen-iRecvLen)) <= 0)
 			{
 				(*logInfo)("read data err");
 				break;
@@ -223,36 +203,82 @@ int OperDobot2::ReadFromDobot()
 		int8_t d =  pData[iTotalLen-1];
 		if(c + d == 0)
 		{
-			(*logInfo)("check succeed");
+			//(*logInfo)("check succeed");
+			static int iT = 0;
+			static char sLog[128] = {0};
 			//m_bHavingRecvData = true;
 			switch(id)
 			{
 			case 10:
-				Pose p;
-				memcpy(&p,pData+2,sizeof(Pose));
+				//(*logInfo)("pos");
 				theDobotStatusCritical.Lock();
-				FloatToByte(p.x,m_DobotAndWinStatus.m_DS.cX);
-				FloatToByte(p.y,m_DobotAndWinStatus.m_DS.cY);
-				FloatToByte(p.z,m_DobotAndWinStatus.m_DS.cZ);
-				FloatToByte(p.r,m_DobotAndWinStatus.m_DS.cR);
-				FloatToByte(p.jointAngle[0],m_DobotAndWinStatus.m_DS.cBaseAngel);
-				FloatToByte(p.jointAngle[1],m_DobotAndWinStatus.m_DS.cLongAngel);
-				FloatToByte(p.jointAngle[2],m_DobotAndWinStatus.m_DS.cShortAngel);
-				FloatToByte(p.jointAngle[3],m_DobotAndWinStatus.m_DS.cPawAngel);
-				theDobotStatusCritical.Unlock();
+				memcpy((char *)&m_CurrentPos,pData+2,sizeof(Pose));
+				
+				FloatToByte(m_CurrentPos.x,m_DobotAndWinStatus.m_DS.cX);
+				FloatToByte(m_CurrentPos.y,m_DobotAndWinStatus.m_DS.cY);
+				FloatToByte(m_CurrentPos.z,m_DobotAndWinStatus.m_DS.cZ);
+				FloatToByte(m_CurrentPos.r,m_DobotAndWinStatus.m_DS.cR);
+				FloatToByte(m_CurrentPos.jointAngle[0],m_DobotAndWinStatus.m_DS.cBaseAngel);
+				FloatToByte(m_CurrentPos.jointAngle[1],m_DobotAndWinStatus.m_DS.cLongAngel);
+				FloatToByte(m_CurrentPos.jointAngle[2],m_DobotAndWinStatus.m_DS.cShortAngel);
+				FloatToByte(m_CurrentPos.jointAngle[3],m_DobotAndWinStatus.m_DS.cPawAngel);
+				
+		float f1,f2,f3,f4,f5,f6,f7,f8,f9,f10;
+	
+		f1 =  m_CurrentPos.x;// Hex_To_Decimal(m_DobotAndWinStatus.m_DS.cX,4);
+		f2 =  m_CurrentPos.y;//Hex_To_Decimal(m_DobotAndWinStatus.m_DS.cY,4);
+		f3 = m_CurrentPos.z;//Hex_To_Decimal(m_DobotAndWinStatus.m_DS.cZ,4);
+		f4 =  m_CurrentPos.r;//Hex_To_Decimal(m_DobotAndWinStatus.m_DS.cR,4);
+		f5 = m_CurrentPos.jointAngle[0];//	Hex_To_Decimal(m_DobotAndWinStatus.m_DS.cBaseAngel,4);
+		f6 = m_CurrentPos.jointAngle[1];//Hex_To_Decimal(m_DobotAndWinStatus.m_DS.cLongAngel,4);
+		f7 = m_CurrentPos.jointAngle[2];//Hex_To_Decimal(m_DobotAndWinStatus.m_DS.cShortAngel,4);
+		f8 = m_CurrentPos.jointAngle[3];//Hex_To_Decimal(m_DobotAndWinStatus.m_DS.cPawAngel,4);
+		f9 = 0;//Hex_To_Decimal(m_DobotAndWinStatus.m_DS.cIsGrip,4);
+		f10 = 0;//Hex_To_Decimal(m_DobotAndWinStatus.m_DS.cGripperAngel,4);
+		//if(iT++ < 5) m_DobotStartStatus = m_DobotAndWinStatus.m_DS;
+		theDobotStatusCritical.Unlock();
+		//sprintf(sLog,"%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f",f1,f2,f3,f4,f5,f6,f7,f8,f9,f10);
+		//logInfo(sLog);
+		ShowDobotStatus(f1,f2,f3,f4,f5,f6,f7,f8,f9,f10);
+
 				break;
 				
 			default:
 				break;
 			}
+			delete [] pData;
+			return 0;
 		}
 		else
 			(*logInfo)("check failure");
 		delete [] pData;
-//}
 	}
-	return 0;
+	return -1;
 }
+
+
+
+void OperDobot2::DobotStart()
+{
+	if(OpenCom())
+	{
+		(*logInfo)("open com succeed");
+	}
+	else
+	{
+		(*logInfo)("open com err");
+		m_bRunning = false;
+		return;
+	}
+	m_bRunning = true;
+	unsigned int nThreadAddr1,nThreadAddr2;
+	HANDLE	hSession = (HANDLE)_beginthreadex(0, 0, SendGetPoseData, this, 0, &nThreadAddr1);
+	if(hSession) CloseHandle( hSession );
+	Sleep(5);
+	hSession = (HANDLE)_beginthreadex(0, 0,  ReadData, this, 0, &nThreadAddr2);
+	if(hSession) CloseHandle( hSession );
+}
+
 typedef struct tagJOGCmd {
 uint8_t isJoint;
 uint8_t cmd;
@@ -279,7 +305,7 @@ void OperDobot2::PointMoving(int nAxis,bool bAngle)
 	}
 	cmd[7] = 256 - c;
 	m_csList.Lock();
-	int nRet = byteSendData(cmd,8);
+	int nRet = WriteComm(cmd,8);
 	m_csList.Unlock();
 	delete [] cmd;
 }
@@ -287,15 +313,41 @@ void OperDobot2::PointMoving(int nAxis,bool bAngle)
 unsigned int __stdcall SendGetPoseData(void * param)
 {
 	OperDobot2 *Opd = (OperDobot2 *)param;
-	while(1)
+	while(Opd->m_bRunning)
 	{
-		if(Opd->m_bRunning)
-		{
-			Opd->SendGetPoseOrder();
-			Sleep(50);
-		}
-		else
-			Sleep(100);
+		Opd->SendGetPoseOrder();
+		Sleep(8);
 	}
+	return 0;
 }
+
+unsigned int __stdcall ReadData(void * param)
+{
+	OperDobot *Opd = (OperDobot *)param;
+	while(Opd->m_bRunning)
+	{
+		if(Opd->ReadFromDobot() < 0)
+		{
+			Opd->m_bRunning = false;
+		}
+		Sleep(3);
+	}
+	Opd->CloseComm();
+	return 0;
+}
+
+void OperDobot2::AddOrderList(DobotOrder &order)
+{
+	if(order.cIsGrip)
+		SetGrab(true);
+	else 
+		SetGrab(false);
+	CDobotPoint pt;
+	pt.x = Hex_To_Decimal(order.cX, 4);
+	pt.y = Hex_To_Decimal(order.cY, 4);
+	pt.z = Hex_To_Decimal(order.cZ, 4);
+	Move2AbsolutePosition(pt,0);
+}
+
+
 

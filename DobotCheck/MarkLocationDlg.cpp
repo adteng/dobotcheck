@@ -177,7 +177,7 @@ void CMarkLocationDlg::OnBnClickedButtonPointLoad()
 	{
 		memset(cLine,0,128);
 		m_ifs.getline(cLine,128);
-		strLine = cLine;strTrim(strLine);
+		strLine = cLine;OperDobot::strTrim(strLine);
 
 			nPos = strLine.find (",");memset(sBuffer,0,16);
 			memcpy(sBuffer,strLine.c_str(),nPos);
@@ -200,7 +200,7 @@ void CMarkLocationDlg::OnBnClickedButtonPointLoad()
 	{
 		memset(cLine,0,128);
 		m_ifs.getline(cLine,128);
-		strLine = cLine;strTrim(strLine);
+		strLine = cLine;OperDobot::strTrim(strLine);
 
 			nPos = strLine.find (",");memset(sBuffer,0,16);
 			memcpy(sBuffer,strLine.c_str(),nPos);
@@ -226,7 +226,7 @@ void CMarkLocationDlg::OnBnClickedButtonPointLoad()
 		
 		memset(cLine,0,128);
 		m_ifs.getline(cLine,128);
-		strLine = cLine;strTrim(strLine);
+		strLine = cLine;OperDobot::strTrim(strLine);
 
 			 nPos = strLine.find (",");memset(sBuffer,0,16);
 			memcpy(sBuffer,strLine.c_str(),nPos);
@@ -246,7 +246,7 @@ void CMarkLocationDlg::OnBnClickedButtonPointLoad()
 		
 		memset(cLine,0,128);
 		m_ifs.getline(cLine,128);
-		strLine = cLine;strTrim(strLine);
+		strLine = cLine;OperDobot::strTrim(strLine);
 
 			 nPos = strLine.find (",");memset(sBuffer,0,16);
 			memcpy(sBuffer,strLine.c_str(),nPos);

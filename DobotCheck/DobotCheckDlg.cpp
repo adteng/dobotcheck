@@ -197,7 +197,7 @@ bool CDobotCheckDlg::SearchCOM(char *pName,const char *pFindName)
 				nPos1 = strPort.find("(",0);
 				nPos2 = strPort.find(")",nPos1);
 				strPort = strPort.substr(nPos1+1,nPos2-nPos1-1);
-				strTrim(strPort);
+				OperDobot::strTrim(strPort);
 				strcpy(pName,strPort.c_str());
 				bArduino = true;
 				break;
@@ -398,16 +398,16 @@ void CDobotCheckDlg::OnBnClickedSend()
 	m_f10 = 0.0;
 	m_NewDobotOrder.cHead[0] = 0xA5;
 	m_NewDobotOrder.cEnd[0] = 0x5A;
-	FloatToByte(m_f1,m_NewDobotOrder.cState);
-	FloatToByte(m_f2,m_NewDobotOrder.cAxis);
-	FloatToByte(m_f3,m_NewDobotOrder.cX);
-	FloatToByte(m_f4,m_NewDobotOrder.cY);
-	FloatToByte(m_f5,m_NewDobotOrder.cZ);
-	FloatToByte(m_f6,m_NewDobotOrder.cRHead);
-	FloatToByte(m_f7,m_NewDobotOrder.cIsGrip);
-	FloatToByte(m_f8,m_NewDobotOrder.cStartVe);
-	FloatToByte(m_f9,m_NewDobotOrder.cEndVel);
-	FloatToByte(m_f10,m_NewDobotOrder.cMaxVe);
+	OperDobot::FloatToByte(m_f1,m_NewDobotOrder.cState);
+	OperDobot::FloatToByte(m_f2,m_NewDobotOrder.cAxis);
+	OperDobot::FloatToByte(m_f3,m_NewDobotOrder.cX);
+	OperDobot::FloatToByte(m_f4,m_NewDobotOrder.cY);
+	OperDobot::FloatToByte(m_f5,m_NewDobotOrder.cZ);
+	OperDobot::FloatToByte(m_f6,m_NewDobotOrder.cRHead);
+	OperDobot::FloatToByte(m_f7,m_NewDobotOrder.cIsGrip);
+	OperDobot::FloatToByte(m_f8,m_NewDobotOrder.cStartVe);
+	OperDobot::FloatToByte(m_f9,m_NewDobotOrder.cEndVel);
+	OperDobot::FloatToByte(m_f10,m_NewDobotOrder.cMaxVe);
 
 	//if(g_OperDobot != NULL)
 		//g_OperDobot->AddOrderList(m_NewDobotOrder);   

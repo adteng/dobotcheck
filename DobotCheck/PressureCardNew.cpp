@@ -76,12 +76,12 @@ void CPressureCardNew::OnBnClickedButtonStartPressure()
 	memset(cLine,0,81);
 	for(int i=0;m_ifs.getline(cLine,80);i++)
 	{
-		strLine = cLine;strTrim(strLine);
+		strLine = cLine;OperDobot::strTrim(strLine);
 		//for(int j=1;j<=10;j++)
 		{
 			nPos = strLine.find (";");memset(sBuffer,0,9);
 			memcpy(sBuffer,strLine.c_str (),nPos);
-			FloatToByte(atof(sBuffer),m_NewDobotOrder.cState);//m_list_cmd.SetItemText(i,j,sBuffer);
+			OperDobot::FloatToByte(atof(sBuffer),m_NewDobotOrder.cState);//m_list_cmd.SetItemText(i,j,sBuffer);
 			strLine.erase(0,nPos+1);
 		}
 		{
@@ -94,36 +94,36 @@ void CPressureCardNew::OnBnClickedButtonStartPressure()
 			nPos = strLine.find (";");memset(sBuffer,0,9);
 			memcpy(sBuffer,strLine.c_str (),nPos);
 			if(sBuffer[0] == '0') 
-				stringToHEX("00000000",m_NewDobotOrder.cStartVe,8);//运动模式 0：Jump；1：Movj；2:Movl
+				OperDobot::stringToHEX("00000000",m_NewDobotOrder.cStartVe,8);//运动模式 0：Jump；1：Movj；2:Movl
 			else if(sBuffer[0] == '1')
-				stringToHEX("0000803F",m_NewDobotOrder.cStartVe,8);//运动模式
+				OperDobot::stringToHEX("0000803F",m_NewDobotOrder.cStartVe,8);//运动模式
 			else
-				stringToHEX("00000040",m_NewDobotOrder.cStartVe,8);//运动模式
+				OperDobot::stringToHEX("00000040",m_NewDobotOrder.cStartVe,8);//运动模式
 
 			strLine.erase(0,nPos+1);
 		}
 		{
 			nPos = strLine.find (";");memset(sBuffer,0,9);
 			memcpy(sBuffer,strLine.c_str (),nPos);
-			FloatToByte(atof(sBuffer),m_NewDobotOrder.cX);//m_list_cmd.SetItemText(i,j,sBuffer);
+			OperDobot::FloatToByte(atof(sBuffer),m_NewDobotOrder.cX);//m_list_cmd.SetItemText(i,j,sBuffer);
 			strLine.erase(0,nPos+1);
 		}
 		{
 			nPos = strLine.find (";");memset(sBuffer,0,9);
 			memcpy(sBuffer,strLine.c_str (),nPos);
-			FloatToByte(atof(sBuffer),m_NewDobotOrder.cY);//m_list_cmd.SetItemText(i,j,sBuffer);
+			OperDobot::FloatToByte(atof(sBuffer),m_NewDobotOrder.cY);//m_list_cmd.SetItemText(i,j,sBuffer);
 			strLine.erase(0,nPos+1);
 		}
 		{
 			nPos = strLine.find (";");memset(sBuffer,0,9);
 			memcpy(sBuffer,strLine.c_str (),nPos);
-			FloatToByte(atof(sBuffer),m_NewDobotOrder.cZ);//m_list_cmd.SetItemText(i,j,sBuffer);
+			OperDobot::FloatToByte(atof(sBuffer),m_NewDobotOrder.cZ);//m_list_cmd.SetItemText(i,j,sBuffer);
 			strLine.erase(0,nPos+1);
 		}
 		{
 			nPos = strLine.find (";");memset(sBuffer,0,9);
 			memcpy(sBuffer,strLine.c_str (),nPos);
-			FloatToByte(atof(sBuffer),m_NewDobotOrder.cRHead);//m_list_cmd.SetItemText(i,j,sBuffer);
+			OperDobot::FloatToByte(atof(sBuffer),m_NewDobotOrder.cRHead);//m_list_cmd.SetItemText(i,j,sBuffer);
 			strLine.erase(0,nPos+1);
 		}
 		{
@@ -131,10 +131,10 @@ void CPressureCardNew::OnBnClickedButtonStartPressure()
 			memcpy(sBuffer,strLine.c_str (),nPos);
 			if(sBuffer[0] == 'Y') 
 			{
-				stringToHEX("0000803F",m_NewDobotOrder.cIsGrip,8);//1
+				OperDobot::stringToHEX("0000803F",m_NewDobotOrder.cIsGrip,8);//1
 			}else
 			{
-				stringToHEX("00000000",m_NewDobotOrder.cIsGrip,8);//0
+				OperDobot::stringToHEX("00000000",m_NewDobotOrder.cIsGrip,8);//0
 			}
 
 			strLine.erase(0,nPos+1);
@@ -142,13 +142,13 @@ void CPressureCardNew::OnBnClickedButtonStartPressure()
 		{
 			nPos = strLine.find (";");memset(sBuffer,0,9);
 			memcpy(sBuffer,strLine.c_str (),nPos);
-			FloatToByte(atof(sBuffer),m_NewDobotOrder.cEndVel);//m_list_cmd.SetItemText(i,j,sBuffer);
+			OperDobot::FloatToByte(atof(sBuffer),m_NewDobotOrder.cEndVel);//m_list_cmd.SetItemText(i,j,sBuffer);
 			strLine.erase(0,nPos+1);
 		}
 		{
 			nPos = strLine.find (";");memset(sBuffer,0,9);
 			memcpy(sBuffer,strLine.c_str (),nPos);
-			FloatToByte(atof(sBuffer),m_NewDobotOrder.cMaxVe);//m_list_cmd.SetItemText(i,j,sBuffer);
+			OperDobot::FloatToByte(atof(sBuffer),m_NewDobotOrder.cMaxVe);//m_list_cmd.SetItemText(i,j,sBuffer);
 			strLine.erase(0,nPos+1);
 		}
 		//nItemCnt ++;

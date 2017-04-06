@@ -310,9 +310,9 @@ void CPressureCard::OnBnClickedButtonOpenefile()
 	OnBnClickedButtonDel();//OnButtonDel();
 	for(int i=0;m_ifs.getline(cLine,80);i++)
 	{
-		strLine = cLine;strTrim(strLine);
+		strLine = cLine;OperDobot::strTrim(strLine);
 		nItem = m_list_cmd.InsertItem (i,"");//.InsertItem(1,"0");
-		m_list_cmd.SetItemText(nItem,0,IToString(i+1).c_str());
+		m_list_cmd.SetItemText(nItem,0,OperDobot::IToString(i+1).c_str());
 		for(int j=1;j<=10;j++)
 		{
 			nPos = strLine.find (";");memset(sBuffer,0,9);
@@ -413,48 +413,48 @@ void CPressureCard::ExeSel(bool bExeAll)
 	{
 		nItem = m_list_cmd.GetNextSelectedItem(pos);
 		m_list_cmd.GetItemText(nItem,1,sBuffer,15);
-		fTmp = atof(sBuffer);FloatToByte(fTmp,cBuf);
+		fTmp = atof(sBuffer);OperDobot::FloatToByte(fTmp,cBuf);
 		memcpy(m_NewDobotOrder.cState,cBuf,4);//运动模式
 
-		stringToHEX("00000000",m_NewDobotOrder.cAxis,8);//cAxis
+		OperDobot::stringToHEX("00000000",m_NewDobotOrder.cAxis,8);//cAxis
 
 		m_list_cmd.GetItemText(nItem,3,sBuffer,15);
 		if(sBuffer[0] == '0') 
-			stringToHEX("00000000",m_NewDobotOrder.cStartVe,8);//运动模式 0：Jump；1：Movj；2:Movl
+			OperDobot::stringToHEX("00000000",m_NewDobotOrder.cStartVe,8);//运动模式 0：Jump；1：Movj；2:Movl
 		else if(sBuffer[0] == '1')
-			stringToHEX("0000803F",m_NewDobotOrder.cStartVe,8);//运动模式
+			OperDobot::stringToHEX("0000803F",m_NewDobotOrder.cStartVe,8);//运动模式
 		else
-			stringToHEX("00000040",m_NewDobotOrder.cStartVe,8);//运动模式
+			OperDobot::stringToHEX("00000040",m_NewDobotOrder.cStartVe,8);//运动模式
 
 		m_list_cmd.GetItemText(nItem,4,sBuffer,15);
-		fTmp = atof(sBuffer);FloatToByte(fTmp,cBuf);
+		fTmp = atof(sBuffer);OperDobot::FloatToByte(fTmp,cBuf);
 		memcpy(m_NewDobotOrder.cX,cBuf,4);
 
 		m_list_cmd.GetItemText(nItem,5,sBuffer,15);
-		fTmp = atof(sBuffer);FloatToByte(fTmp,cBuf);
+		fTmp = atof(sBuffer);OperDobot::FloatToByte(fTmp,cBuf);
 		memcpy(m_NewDobotOrder.cY,cBuf,4);
 
 		m_list_cmd.GetItemText(nItem,6,sBuffer,15);
-		fTmp = atof(sBuffer);FloatToByte(fTmp,cBuf);
+		fTmp = atof(sBuffer);OperDobot::FloatToByte(fTmp,cBuf);
 		memcpy(m_NewDobotOrder.cZ,cBuf,4);
 
 		m_list_cmd.GetItemText(nItem,7,sBuffer,15);
-		fTmp = atof(sBuffer);FloatToByte(fTmp,cBuf);
+		fTmp = atof(sBuffer);OperDobot::FloatToByte(fTmp,cBuf);
 		memcpy(m_NewDobotOrder.cRHead,cBuf,4);
 
 		m_list_cmd.GetItemText(nItem,8,sBuffer,15);
 		if(sBuffer[0] == 'Y') 
 		{
-			stringToHEX("0000803F",m_NewDobotOrder.cIsGrip,8);//1
+			OperDobot::stringToHEX("0000803F",m_NewDobotOrder.cIsGrip,8);//1
 		}else{
-			stringToHEX("00000000",m_NewDobotOrder.cIsGrip,8);//0
+			OperDobot::stringToHEX("00000000",m_NewDobotOrder.cIsGrip,8);//0
 		}
 		m_list_cmd.GetItemText(nItem,9,sBuffer,15);
-		fTmp = atof(sBuffer);FloatToByte(fTmp,cBuf);
+		fTmp = atof(sBuffer);OperDobot::FloatToByte(fTmp,cBuf);
 		memcpy(m_NewDobotOrder.cEndVel,cBuf,4);
 
 		m_list_cmd.GetItemText(nItem,10,sBuffer,15);
-		fTmp = atof(sBuffer);FloatToByte(fTmp,cBuf);
+		fTmp = atof(sBuffer);OperDobot::FloatToByte(fTmp,cBuf);
 		memcpy(m_NewDobotOrder.cMaxVe,cBuf,4);
 
 		m_CMDList.push_back(m_NewDobotOrder);
@@ -563,9 +563,9 @@ void CPressureCard::OnLbnSelchangeListSport()
 	OnBnClickedButtonDel();//OnButtonDel();
 	for(int i=0;m_ifs.getline(cLine,80);i++)
 	{
-		strLine = cLine;strTrim(strLine);
+		strLine = cLine;OperDobot::strTrim(strLine);
 		nItem = m_list_cmd.InsertItem (i,"");//.InsertItem(1,"0");
-		m_list_cmd.SetItemText(nItem,0,IToString(i+1).c_str());
+		m_list_cmd.SetItemText(nItem,0,OperDobot::IToString(i+1).c_str());
 		for(int j=1;j<=10;j++)
 		{
 			nPos = strLine.find (";");memset(sBuffer,0,9);
