@@ -3,6 +3,9 @@
 #pragma once
 #include "OperDobot.h"
 #include "ACard.h"
+#include <vector>
+
+using namespace std;
 
 typedef struct 
 {
@@ -28,6 +31,7 @@ typedef struct
 	int m_iLayer_Sum;
 } SystemInfo;
 
+typedef vector<WorkingPointInf> SPACE;
 
 class CScandOP
 {
@@ -38,7 +42,8 @@ public:
 	virtual ~CScandOP(void);
 	OperDobot *m_pOperDobot;
 	CACard *m_pCardOP;
-	WorkingPointInf m_iWorkingPoint[50][50][8];
+	WorkingPointInf m_iWorkingPoint[9][9][5];
+	SPACE m_space;
 	CDobotPoint m_FirstScandPoint;
 	DevInfo m_devInfo;
 	SystemInfo m_sysInfo;

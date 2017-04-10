@@ -14,6 +14,7 @@ CScandOP::~CScandOP(void)
 
 void CScandOP::SetupPosition(float fXLen,float fYLen,int iX_sum,int iY_sum,int iZ_sum,const CDobotPoint &firstPoint)
 {
+	/*
 	float fXSpace,fYSpace,fZSpace;
 	fXSpace = fXLen/(iX_sum - 1);
 	fYSpace = fYLen/(iY_sum - 1);
@@ -27,6 +28,68 @@ void CScandOP::SetupPosition(float fXLen,float fYLen,int iX_sum,int iY_sum,int i
 				m_iWorkingPoint[x][y][z].dp_point.z = firstPoint.z + z * fZSpace;
 				m_iWorkingPoint[x][y][z].iPointStatus = 0;
 			}
+	*/
+	WorkingPointInf wi;
+	wi.dp_point = firstPoint;
+	wi.iPointStatus = 0;
+	
+	wi.dp_point.y -= 20;
+	m_space.push_back(wi);
+	wi.dp_point.y += 20;
+	wi.dp_point.x -= 20;
+	m_space.push_back(wi);
+	wi.dp_point.x += 20;
+	wi.dp_point.y += 20;
+	m_space.push_back(wi);
+	wi.dp_point.y -= 20;
+	wi.dp_point.x += 20;
+	m_space.push_back(wi);
+	wi.dp_point.x -= 20;
+	m_space.push_back(wi);
+
+	for(int i = 0; i < 3; i++)
+	{
+	wi.dp_point.z += 30;
+	wi.dp_point.y -= 40;
+	m_space.push_back(wi);
+	wi.dp_point.y += 40;
+	wi.dp_point.x -= 40;
+	m_space.push_back(wi);
+	wi.dp_point.y += 40;
+	wi.dp_point.x += 40;
+	m_space.push_back(wi);
+	wi.dp_point.y -= 40;
+	wi.dp_point.x += 40;
+	m_space.push_back(wi);
+	wi.dp_point.x -= 20;
+	m_space.push_back(wi);
+	wi.dp_point.x -= 20;
+	wi.dp_point.y -= 20;
+	m_space.push_back(wi);
+	wi.dp_point.x -= 20;
+	wi.dp_point.y += 20;
+	m_space.push_back(wi);
+	wi.dp_point.x += 20;
+	wi.dp_point.y += 20;
+	m_space.push_back(wi);
+	wi.dp_point.y -= 20;
+	m_space.push_back(wi);
+	}
+
+	wi.dp_point.z += 30;
+	wi.dp_point.y -= 20;
+	m_space.push_back(wi);
+	wi.dp_point.y += 20;
+	wi.dp_point.x -= 20;
+	m_space.push_back(wi);
+	wi.dp_point.x += 20;
+	wi.dp_point.y += 20;
+	m_space.push_back(wi);
+	wi.dp_point.y -= 20;
+	wi.dp_point.x += 20;
+	m_space.push_back(wi);
+	wi.dp_point.x -= 20;
+	m_space.push_back(wi);
 }
 
 void CScandOP::TestRegion()
@@ -85,20 +148,21 @@ void CScandOP::ScandReading()
 	unsigned long fee0,fee1;
 	int z_up = m_FirstScandPoint.z + 50;
 	//dlg->GetDlgItem(IDC_EDIT_STATUS)->SetWindowText("开始测试...");
+	/*
 	for(int z=0;z<m_sysInfo.m_iLayer_Sum;z++)
 	{
 		//dlg->m_comboLayer.SetCurSel(z);
 		(pLayerChange)(z);
 		for(int y=0;y<m_sysInfo.m_iY_Sum;y++)
 			for(int x=0;x<m_sysInfo.m_iX_Sum;x++)
+	*/
+	int i = 0;
+	for(i = 0; i < m_space.size(); i++)
 {
 	if(!m_bRunning) break;
-
-	
-
-	m_iWorkingPoint[x][y][z].iPointStatus = 1;
-	int iSeqNo = z * m_sysInfo.m_iY_Sum * m_sysInfo.m_iX_Sum + y * m_sysInfo.m_iX_Sum + x;
-	int iCardNo = iSeqNo % 4;
+	//m_iWorkingPoint[x][y][z].iPointStatus = 1;
+	//int iSeqNo = z * m_sysInfo.m_iY_Sum * m_sysInfo.m_iX_Sum + y * m_sysInfo.m_iX_Sum + x;
+	int iCardNo = i % 4;
 	CDobotPoint CurrentCardPoint = m_pOperDobot->m_CardInfo[iCardNo].dp_point;
 	CDobotPoint CurrentCardPoint_up = CurrentCardPoint;CurrentCardPoint_up.z = z_up;
 	//CAngle CurrentAnglePoint = g_OperDobot->m_CardInfo[iCardNo].an_point;
@@ -128,9 +192,9 @@ void CScandOP::ScandReading()
 	
 	m_pOperDobot->Move2AbsolutePosition(ReadMachePoint_up,-15);//Sleep(1000);
 
-	CDobotPoint wp_u = m_pOperDobot->m_WorkCenterPoint;/*g_iWorkingPoint[x][y][z].dp_point;*/wp_u.z = z_up; if(x == 0) TRACE("x,y,z=%f,%f,%f\n",wp_u.x,wp_u.y,wp_u.z);
+	CDobotPoint wp_u = m_pOperDobot->m_WorkCenterPoint;/*g_iWorkingPoint[x][y][z].dp_point;*/wp_u.z = z_up; //if(x == 0) TRACE("x,y,z=%f,%f,%f\n",wp_u.x,wp_u.y,wp_u.z);
 	m_pOperDobot->Move2AbsolutePosition(wp_u,-15);//Sleep(1000);
-	m_pOperDobot->Move2AbsolutePosition(m_iWorkingPoint[x][y][z].dp_point,-15);//Sleep(1000);//g_pCardOP->Consume();//开始扣费f
+	m_pOperDobot->Move2AbsolutePosition(m_space[i].dp_point,-15);//Sleep(1000);//g_pCardOP->Consume();//开始扣费f
 	m_pOperDobot->Move2AbsolutePosition(wp_u,-15);//Sleep(1000);
 
 	m_pOperDobot->Move2AbsolutePosition(ReadMachePoint_up,-15);//Sleep(1000);
@@ -159,19 +223,15 @@ void CScandOP::ScandReading()
 	CDobotPoint p = CurrentCardPoint;p.z += 10;
 	m_pOperDobot->Move2AbsolutePosition(p,-15);/*Sleep(1000);*/ m_pOperDobot->SetGrab(FALSE);//Sleep(1000);//放开卡
 	m_pOperDobot->Move2AbsolutePosition(CurrentCardPoint_up,-15);//Sleep(1000);
-	m_iWorkingPoint[x][y][z].iPointStatus = iPointStatus;
-
-	char str[256] = {0};
-	sprintf(str,"共%d个点，已测试了%d个，其中%d个成功，%d个失败",m_sysInfo.m_iX_Sum*m_sysInfo.m_iY_Sum*m_sysInfo.m_iLayer_Sum,iSeqNo+1,iSucceedSum,iSeqNo+1-iSucceedSum);
-	(pViewChange)(str);
-}
+	m_space[i].iPointStatus = iPointStatus;
 	}
-
+	char str[256] = {0};
+	sprintf(str,"共%d个点，已测试了%d个，其中%d个成功，%d个失败",m_sysInfo.m_iX_Sum*m_sysInfo.m_iY_Sum*m_sysInfo.m_iLayer_Sum,i+1,iSucceedSum,i+1-iSucceedSum);
+	(pViewChange)(str);
 
 	CDobotPoint p = m_pOperDobot->m_WorkCenterPoint;
 	p.z += m_devInfo.m_iDevH + 50;
 	m_pOperDobot->Move2AbsolutePosition(p);
-
 }
 
 void CScandOP::ScandNoFee1()
