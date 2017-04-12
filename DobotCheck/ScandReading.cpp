@@ -365,7 +365,7 @@ BOOL CScandReading::OnInitDialog()
 		m_comboLayer.AddString(str);
 	}
 	m_comboLayer.SetCurSel(0);
-	SetTimer(1,300,NULL);
+	SetTimer(1,800,NULL);
 
 	m_MarkLocationDlg = new CMarkLocationDlg();
 	m_MarkLocationDlg->Create(IDD_DIALOG_M5);
@@ -395,6 +395,11 @@ BOOL CScandReading::OnInitDialog()
 	m_scand.pViewChange = ViewChange;
 	UpdateData(FALSE);
 	UpdateParameter();
+	CDobotPoint pt;
+	pt.x = 40;
+	pt.y = 40;
+	pt.z = 10;
+	m_scand.SetupPosition(0,0,0,0,0,pt);
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 异常: OCX 属性页应返回 FALSE
 }
@@ -681,7 +686,13 @@ void CScandReading::DrawPointWithStatus()
 	CPen *penWorkRegion = new CPen(PS_DASH, 0, RGB(0, 0, 255));
 	pOldPen = pDC->SelectObject(penWorkRegion);
 	pDC->SelectStockObject(NULL_BRUSH);
-	pDC->Rectangle(center.x-fWLen/2.0,center.y-fHLen/2.0,center.x+fWLen/2.0,center.y+fHLen/2.0);
+	//pDC->Rectangle(center.x-fWLen/2.0,center.y-fHLen/2.0,center.x+fWLen/2.0,center.y+fHLen/2.0);
+	float R1 = rectPar.Height()/2.0 * 4.0/5.0 * 0.65;
+	CRect rect1(center.x-R1,center.y-R1,center.x+R1,center.y+R1);
+	pDC-> Ellipse (rect1);
+	float R2 = rectPar.Height()/2.0 * 4.0/5.0;
+	CRect rect2(center.x-R2,center.y-R2,center.x+R2,center.y+R2);
+	pDC-> Ellipse (rect2);
 	pDC->SelectObject(pOldPen);
 	/*
 	CPen *pen0 = new CPen(PS_SOLID, 5, RGB(255, 255, 255));
@@ -713,8 +724,13 @@ void CScandReading::DrawPointWithStatus()
 	delete penWorkRegion;
 
 	int z = m_comboLayer.GetCurSel();
+
+/*
 	for(int w=0;w<m_iY_Sum;w++)
 		for(int h=0;h<m_iX_Sum;h++)
+*/
+	int sum = (z==0 || z==5) ? 5:9;
+	for(int i = 0; i <  sum; i++)
 		{
 			CPen *pen = new CPen(PS_SOLID, 0, RGB(255, 0, 0));
 			pOldPen = pDC->SelectObject(pen);
@@ -722,11 +738,11 @@ void CScandReading::DrawPointWithStatus()
 			CBrush *brushRed = new CBrush(RGB(255, 0, 0));
 			CBrush *brushGreen = new CBrush(RGB(0, 255, 0));
 			
-			if(m_scand.m_iWorkingPoint[h][w][z].iPointStatus == 0)//未处理的点
+			if(m_scand.m_space[z==0?0:5 + (z==0?z:z-1) * 9+i].iPointStatus == 0)//未处理的点
 			{
 				pDC->SelectStockObject(NULL_BRUSH);
 			}
-			else if(m_scand.m_iWorkingPoint[h][w][z].iPointStatus == 1)//正在处理的点
+			else if(m_scand.m_space[z==0?0:5 + (z==0?z:z-1) * 9+i].iPointStatus == 1)//正在处理的点
 			{
 				static bool bFlashLight = true;
 				if(bFlashLight)
@@ -735,11 +751,11 @@ void CScandReading::DrawPointWithStatus()
 					pDC->SelectObject(brushGreen);
 				bFlashLight = !bFlashLight;
 			}
-			else if(m_scand.m_iWorkingPoint[h][w][z].iPointStatus == 2)//处理成功的点
+			else if(m_scand.m_space[z==0?0:5 + (z==0?z:z-1) * 9+i].iPointStatus == 2)//处理成功的点
 			{
 				pDC->SelectObject(brushGreen);
 			}
-			else if(m_scand.m_iWorkingPoint[h][w][z].iPointStatus == 3)//处理失败的点
+			else if(m_scand.m_space[z==0?0:5 + (z==0?z:z-1) * 9+i].iPointStatus == 3)//处理失败的点
 			{
 				pDC->SelectObject(brushRed);
 			}
@@ -754,13 +770,64 @@ void CScandReading::DrawPointWithStatus()
 				fDiameter = fWSpace*2/3.0;
 			}
 			if(fDiameter > 50) fDiameter = 50;
-			int iPointW = center.x-fWLen/2.0 + w * fWSpace;  //w * iWSPLen + iWSPLen/2.0;//中心点
-			int iPointH = center.y-fHLen/2.0 + h * fHSpace;  //h * iHSPLen + iHSPLen/2.0;//中心点
+			//int iPointW = center.x-fWLen/2.0 + w * fWSpace;  //w * iWSPLen + iWSPLen/2.0;//中心点
+			//int iPointH = center.y-fHLen/2.0 + h * fHSpace;  //h * iHSPLen + iHSPLen/2.0;//中心点
+
 
 			//CRect rect1( w * iWSPLen,h * iHSPLen ,(w+1) * iWSPLen,(h + 1) * iHSPLen);
 			//pDC->Rectangle(rect1);
+			float x,y;
+			switch(i)
+			{
+			case 0:
+				x = center.x - R2;
+				y = center.y;
+				break;
+			case 1:
+				x = center.x;
+				y = center.y - R2;
+				break;
+			case 2:
+				x = center.x + R2;
+				y = center.y;
+				break;
+			case 3:
+				x = center.x;
+				y = center.y + R2;
+				break;
+			case 4:
+				if(z == 0 || z == 4)
+				{
+				x = center.x;
+				y = center.y;
+				}
+				else
+				{
+				x = center.x;
+				y = center.y + R1;
+				}
+				break;
+			case 5:
+				x = center.x - R1;
+				y = center.y;
+				break;
+			case 6:
+				x = center.x;
+				y = center.y - R1;
+				break;
+			case 7:
+				x = center.x + R1;
+				y = center.y;
+				break;
+			case 8:
+				x = center.x;
+				y = center.y;
+				break;
+			default:
+				break;
+			}
 
-			CRect rect(iPointW - fDiameter/2.0,iPointH - fDiameter/2.0,iPointW + fDiameter/2.0,iPointH + fDiameter/2.0);
+			CRect rect(x - fDiameter/2.0,y - fDiameter/2.0,x + fDiameter/2.0,y + fDiameter/2.0);
 			pDC-> Ellipse (rect);
 
 			pDC->SelectObject(pOldPen);

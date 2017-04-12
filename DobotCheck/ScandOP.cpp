@@ -33,62 +33,62 @@ void CScandOP::SetupPosition(float fXLen,float fYLen,int iX_sum,int iY_sum,int i
 	wi.dp_point = firstPoint;
 	wi.iPointStatus = 0;
 	
-	wi.dp_point.y -= 20;
+	wi.dp_point.y -= 15;
 	m_space.push_back(wi);
-	wi.dp_point.y += 20;
-	wi.dp_point.x -= 20;
+	wi.dp_point.y += 15;
+	wi.dp_point.x -= 15;
 	m_space.push_back(wi);
-	wi.dp_point.x += 20;
-	wi.dp_point.y += 20;
+	wi.dp_point.x += 15;
+	wi.dp_point.y += 15;
 	m_space.push_back(wi);
-	wi.dp_point.y -= 20;
-	wi.dp_point.x += 20;
+	wi.dp_point.y -= 15;
+	wi.dp_point.x += 15;
 	m_space.push_back(wi);
-	wi.dp_point.x -= 20;
+	wi.dp_point.x -= 15;
 	m_space.push_back(wi);
 
 	for(int i = 0; i < 3; i++)
 	{
-	wi.dp_point.z += 30;
-	wi.dp_point.y -= 40;
+	wi.dp_point.z += 10;
+	wi.dp_point.y -= 25;
 	m_space.push_back(wi);
-	wi.dp_point.y += 40;
-	wi.dp_point.x -= 40;
+	wi.dp_point.y += 25;
+	wi.dp_point.x -= 25;
 	m_space.push_back(wi);
-	wi.dp_point.y += 40;
-	wi.dp_point.x += 40;
+	wi.dp_point.y += 25;
+	wi.dp_point.x += 25;
 	m_space.push_back(wi);
-	wi.dp_point.y -= 40;
-	wi.dp_point.x += 40;
+	wi.dp_point.y -= 25;
+	wi.dp_point.x += 25;
 	m_space.push_back(wi);
-	wi.dp_point.x -= 20;
+	wi.dp_point.x -= 10;
 	m_space.push_back(wi);
-	wi.dp_point.x -= 20;
-	wi.dp_point.y -= 20;
+	wi.dp_point.x -= 10;
+	wi.dp_point.y -= 10;
 	m_space.push_back(wi);
-	wi.dp_point.x -= 20;
-	wi.dp_point.y += 20;
+	wi.dp_point.x -= 10;
+	wi.dp_point.y += 10;
 	m_space.push_back(wi);
-	wi.dp_point.x += 20;
-	wi.dp_point.y += 20;
+	wi.dp_point.x += 10;
+	wi.dp_point.y += 10;
 	m_space.push_back(wi);
-	wi.dp_point.y -= 20;
+	wi.dp_point.y -= 10;
 	m_space.push_back(wi);
 	}
 
-	wi.dp_point.z += 30;
-	wi.dp_point.y -= 20;
+	wi.dp_point.z += 10;
+	wi.dp_point.y -= 15;
 	m_space.push_back(wi);
-	wi.dp_point.y += 20;
-	wi.dp_point.x -= 20;
+	wi.dp_point.y += 15;
+	wi.dp_point.x -= 15;
 	m_space.push_back(wi);
-	wi.dp_point.x += 20;
-	wi.dp_point.y += 20;
+	wi.dp_point.x += 15;
+	wi.dp_point.y += 15;
 	m_space.push_back(wi);
-	wi.dp_point.y -= 20;
-	wi.dp_point.x += 20;
+	wi.dp_point.y -= 15;
+	wi.dp_point.x += 15;
 	m_space.push_back(wi);
-	wi.dp_point.x -= 20;
+	wi.dp_point.x -= 15;
 	m_space.push_back(wi);
 }
 

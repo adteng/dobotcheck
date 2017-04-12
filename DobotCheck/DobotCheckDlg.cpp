@@ -138,7 +138,9 @@ BOOL CDobotCheckDlg::OnInitDialog()
 	char sComName[8] = {0};
 	//SearchCOM(sComName,"Arduino Mega 2560");//"USB-SERIAL CH340"
 	SearchCOM(sComName,"USB-SERIAL CH340");
-	g_OperDobot->SetCOM(sComName);
+	CString strCom;
+	strCom.Format( "//./%s",sComName);
+	g_OperDobot->SetCOM((LPCTSTR)strCom);
 
 	//g_wmd->ShowWindow(SW_HIDE);
 
