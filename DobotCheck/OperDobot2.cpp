@@ -274,7 +274,7 @@ void OperDobot2::DobotStart()
 	unsigned int nThreadAddr1,nThreadAddr2;
 	HANDLE	hSession = (HANDLE)_beginthreadex(0, 0, SendGetPoseData, this, 0, &nThreadAddr1);
 	if(hSession) CloseHandle( hSession );
-	Sleep(5);
+	Sleep(50);
 	hSession = (HANDLE)_beginthreadex(0, 0,  ReadData, this, 0, &nThreadAddr2);
 	if(hSession) CloseHandle( hSession );
 }
@@ -316,7 +316,7 @@ unsigned int __stdcall SendGetPoseData(void * param)
 	while(Opd->m_bRunning)
 	{
 		Opd->SendGetPoseOrder();
-		Sleep(8);
+		Sleep(200);
 	}
 	return 0;
 }
@@ -330,7 +330,7 @@ unsigned int __stdcall ReadData(void * param)
 		{
 			Opd->m_bRunning = false;
 		}
-		Sleep(3);
+		Sleep(100);
 	}
 	Opd->CloseComm();
 	return 0;
