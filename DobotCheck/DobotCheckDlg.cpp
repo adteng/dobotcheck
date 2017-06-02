@@ -12,6 +12,7 @@
 #include "ACard.h"
 #include "OperDobot2.h"
 
+
 #pragma  comment(lib,   "setupapi")
 
 #ifdef _DEBUG
@@ -144,21 +145,24 @@ BOOL CDobotCheckDlg::OnInitDialog()
 
 	//g_wmd->ShowWindow(SW_HIDE);
 
-	m_TabCtrl.InsertItem(0,"盲区测试");
+	m_TabCtrl.InsertItem(0,"压力测试");
 	m_TabCtrl.InsertItem(1,"闪卡测试");
-	m_TabCtrl.InsertItem(2,"压力测试");
+	m_TabCtrl.InsertItem(2,"近邻位置点测试");
+	
+	//m_TabCtrl.InsertItem(2,"压力测试");
 
+	m_PressureCard.Create(IDD_DIALOG_M3,GetDlgItem(IDC_TAB1));
 	m_ScandCard.Create(IDD_DIALOG_M1,GetDlgItem(IDC_TAB1));
 	m_FlashCard.Create(IDD_DIALOG_M2,GetDlgItem(IDC_TAB1));
-	m_PressureCardNew.Create(IDD_DIALOG_M4,GetDlgItem(IDC_TAB1));
+	//m_PressureCardNew.Create(IDD_DIALOG_M4,GetDlgItem(IDC_TAB1));
 	
 	RECT rect;
 	GetClientRect(&rect);
 	rect.top += 21;
+	m_PressureCard.MoveWindow(&rect);
 	m_ScandCard.MoveWindow(&rect);
 	m_FlashCard.MoveWindow(&rect);
-	m_PressureCardNew.MoveWindow(&rect);
-
+	
 	((CButton *)GetDlgItem(IDC_RADIO3))->SetCheck(TRUE);
 
 	if(!g_pCardOP->FindCard())
@@ -167,7 +171,8 @@ BOOL CDobotCheckDlg::OnInitDialog()
 	if(!g_pCardOP->ConnectReader())
 		MessageBox("连接读卡器失败");
 
-	m_ScandCard.ShowWindow(TRUE);
+	//m_ScandCard.ShowWindow(TRUE);
+	m_PressureCard.ShowWindow(TRUE);
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -273,11 +278,11 @@ void ShowDobotStatus(float f1,float f2,float f3,float f4,float f5,float f6,float
 {
 	char sData[512] = {0};
 	sprintf(sData,"%0.4f",f1);
-	g_dlg->GetDlgItem(IDC_EDIT2)->SetWindowText(sData);
+	g_dlg->GetDlgItem(IDC_EDIT2)->SetWindowText(sData);g_dlg->m_PressureCard.GetDlgItem(IDC_EDIT_X)->SetWindowTextA(sData);
 	sprintf(sData,"%0.4f",f2);
-	g_dlg->GetDlgItem(IDC_EDIT3)->SetWindowText(sData);
+	g_dlg->GetDlgItem(IDC_EDIT3)->SetWindowText(sData);g_dlg->m_PressureCard.GetDlgItem(IDC_EDIT_Y)->SetWindowTextA(sData);
 	sprintf(sData,"%0.4f",f3);
-	g_dlg->GetDlgItem(IDC_EDIT4)->SetWindowText(sData);
+	g_dlg->GetDlgItem(IDC_EDIT4)->SetWindowText(sData);g_dlg->m_PressureCard.GetDlgItem(IDC_EDIT_Z)->SetWindowTextA(sData);
 	sprintf(sData,"%0.4f",f4);
 	g_dlg->GetDlgItem(IDC_EDIT5)->SetWindowText(sData);
 	sprintf(sData,"%0.4f",f5);
@@ -293,6 +298,8 @@ void ShowDobotStatus(float f1,float f2,float f3,float f4,float f5,float f6,float
 	sprintf(sData,"%0.4f",f10);
 	g_dlg->GetDlgItem(IDC_EDIT11)->SetWindowText(sData);
 
+	
+
 
 	sprintf(sData,"已连接\r\nX轴坐标：\t%0.5\tY轴坐标：%0.5f\tZ轴坐标：\t%0.5f\tR轴绝对位置：\t%0.5f\r\n底座角度：%0.5f\t大臂角度：%0.5f\t小臂角度：%0.5f\t舵机角度：\t%0.5f\r\n爪子角度：%0.5f",f1,f2,f3,f4,f5,f6,f7,f8,f10);
 	g_dlg->GetDlgItem(IDC_EDIT_DOBOT_STATUS)->SetWindowText(sData);
@@ -307,10 +314,6 @@ void CDobotCheckDlg::OnBnClickedButton1()
 	GetDlgItem( IDC_BUTTON1 )->EnableWindow(FALSE);
 	g_OperDobot->DobotStart();
 }
-
-
-
-
 
 unsigned int __stdcall FlashingReading(void * param)
 {
@@ -355,24 +358,16 @@ unsigned int __stdcall FlashingReading(void * param)
 	p4.x = p3.x - a;
 	p4.y = p3.y; 
 	p4.z = p3.z;
-
-
 	//g_OperDobot->Move2AbsolutePosition(p1);
 	//Sleep(1000);
 	g_OperDobot->Move2AbsolutePosition(p2);
-	Sleep(1000);
-
+	//Sleep(1000);
 	g_OperDobot->Move2AbsolutePosition(p3);
-	Sleep(1000);
+	//Sleep(1000);
 	g_OperDobot->Move2AbsolutePosition(p4);
-
-	Sleep(1000);
-
+	//Sleep(1000);
 	return 0;
 }
-
-
-
 
 void CDobotCheckDlg::OnBnClickedSend()
 {
@@ -488,22 +483,23 @@ void CDobotCheckDlg::OnTcnSelchangeTab1(NMHDR *pNMHDR, LRESULT *pResult)
 	switch(CurSel)
 	{
 		case 0:
-			m_ScandCard.ShowWindow(TRUE);
-			m_ScandCard.SetTimer(1,300,NULL);
+			m_PressureCard.ShowWindow(TRUE);
 			m_FlashCard.ShowWindow(FALSE);
-			m_PressureCardNew.ShowWindow(FALSE);
+			m_ScandCard.ShowWindow(FALSE);
+			m_ScandCard.KillTimer(1);
 			break;
 		case 1:
-			m_ScandCard.ShowWindow(FALSE);
-			m_ScandCard.KillTimer(1);
+			m_PressureCard.ShowWindow(FALSE);
 			m_FlashCard.ShowWindow(TRUE);
-			m_PressureCardNew.ShowWindow(FALSE);
+			m_ScandCard.ShowWindow(FALSE);
+			m_ScandCard.KillTimer(1);			
 			break;
 		case 2:
-			m_ScandCard.ShowWindow(FALSE);
-			m_ScandCard.KillTimer(1);
+			m_PressureCard.ShowWindow(FALSE);
 			m_FlashCard.ShowWindow(FALSE);
-			m_PressureCardNew.ShowWindow(TRUE);
+			m_ScandCard.ShowWindow(TRUE);
+			m_ScandCard.SetTimer(1,300,NULL);
+			
 		default:
 			break;
 	}
@@ -562,32 +558,32 @@ BOOL CDobotCheckDlg::PreTranslateMessage(MSG* pMsg)
 		if(pMsg->hwnd == GetDlgItem(IDC_BUTTON_LEFT)->m_hWnd)
 		{
 			g_OperDobot->PointMoving(0,((CButton *)GetDlgItem(IDC_RADIO1))->GetCheck());// 按钮弹起
-			m_PressureCardNew.m_PressureCardDlg->OnBnClickedButtonRefresh();
+			//m_PressureCardNew.m_PressureCardDlg->OnBnClickedButtonRefresh();
 		}
 		if(pMsg->hwnd == GetDlgItem(IDC_BUTTON_RIGHT)->m_hWnd)
 		{
 			g_OperDobot->PointMoving(0,((CButton *)GetDlgItem(IDC_RADIO1))->GetCheck());
-			m_PressureCardNew.m_PressureCardDlg->OnBnClickedButtonRefresh();
+			//m_PressureCardNew.m_PressureCardDlg->OnBnClickedButtonRefresh();
 		}
 		if(pMsg->hwnd == GetDlgItem(IDC_BUTTON_UP)->m_hWnd)
 		{
 			g_OperDobot->PointMoving(0,((CButton *)GetDlgItem(IDC_RADIO1))->GetCheck());
-			m_PressureCardNew.m_PressureCardDlg->OnBnClickedButtonRefresh();
+			//m_PressureCardNew.m_PressureCardDlg->OnBnClickedButtonRefresh();
 		}
 		if(pMsg->hwnd == GetDlgItem(IDC_BUTTON_DOWN)->m_hWnd)
 		{
 			g_OperDobot->PointMoving(0,((CButton *)GetDlgItem(IDC_RADIO1))->GetCheck());
-			m_PressureCardNew.m_PressureCardDlg->OnBnClickedButtonRefresh();
+			//m_PressureCardNew.m_PressureCardDlg->OnBnClickedButtonRefresh();
 		}
 		if(pMsg->hwnd == GetDlgItem(IDC_BUTTON_BACK)->m_hWnd)
 		{
 			g_OperDobot->PointMoving(0,FALSE);
-			m_PressureCardNew.m_PressureCardDlg->OnBnClickedButtonRefresh();
+			//m_PressureCardNew.m_PressureCardDlg->OnBnClickedButtonRefresh();
 		}
 		if(pMsg->hwnd == GetDlgItem(IDC_BUTTON_FORWARD)->m_hWnd)
 		{
 			g_OperDobot->PointMoving(0,FALSE);
-			m_PressureCardNew.m_PressureCardDlg->OnBnClickedButtonRefresh();
+			//m_PressureCardNew.m_PressureCardDlg->OnBnClickedButtonRefresh();
 		}
 	}
 
@@ -597,10 +593,13 @@ BOOL CDobotCheckDlg::PreTranslateMessage(MSG* pMsg)
 void CDobotCheckDlg::OnBnClickedButtonMark()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	/*
 	g_OperDobot->theDobotStatusCritical.Lock();
 	g_OperDobot->m_DobotStartStatus = g_OperDobot->m_DobotAndWinStatus.m_DS;
 	g_OperDobot->theDobotStatusCritical.Unlock();
 	GetDlgItem(IDC_BUTTON_MARK)->EnableWindow(FALSE);
+	*/
+	((OperDobot2 *)g_OperDobot)->GoHome();
 }
 
 

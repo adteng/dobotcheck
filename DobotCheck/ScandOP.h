@@ -23,12 +23,10 @@ typedef struct
 
 typedef struct
 {
-	float m_fXLen;
-	float m_fYLen;
-	int m_iX_Sum;
-	int m_iY_Sum;
-	float m_fLayerSpaceLen;
-	int m_iLayer_Sum;
+	float m_fR1;
+	float m_fR2;
+	float m_fH;
+	float m_fBH;
 } SystemInfo;
 
 typedef vector<WorkingPointInf> SPACE;
@@ -42,7 +40,7 @@ public:
 	virtual ~CScandOP(void);
 	OperDobot *m_pOperDobot;
 	CACard *m_pCardOP;
-	WorkingPointInf m_iWorkingPoint[9][9][5];
+	//WorkingPointInf m_iWorkingPoint[9][9][5];
 	SPACE m_space;
 	CDobotPoint m_FirstScandPoint;
 	DevInfo m_devInfo;
@@ -50,7 +48,7 @@ public:
 	BOOL m_bRunning;
 	void (*pLayerChange)(int);
 	void (*pViewChange)(char *);
-	void SetupPosition(float fXLen,float fYLen,int iX_sum,int iY_sum,int iZ_sum,const CDobotPoint &firstPoint);
+	void SetupPosition(float fR1,float fR2,float fH, float fBH,const CDobotPoint &firstPoint);
 	void TestRegion();
 	void AppParameter();
 	void ScandReading();

@@ -5,9 +5,16 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include "common/utility.h"
-#include "OperDobot.h"
+
+#include "OperDobot2.h"
 using namespace std;
+
+typedef struct tagDataLi
+{
+	Pose pt;
+	float _time;
+	bool _grab;
+} DataLi;
 
 
 // CPressureCard ¶Ô»°¿ò
@@ -41,7 +48,7 @@ public:
 	void SetItemNO();
 	void ExeSel(bool bExeAll = FALSE);
 	void FindFileFromDir();
-	
+	vector<DataLi> m_data,m_copy_data;
 	CListCtrl m_list_cmd;
 	bool bExeStop,bDelAllItem;
 	int nItemCur,nItemCnt;
@@ -62,4 +69,12 @@ public:
 	CListBox m_list_sport;
 	afx_msg void OnLbnDblclkListSport();
 	afx_msg void OnLbnSelchangeListSport();
+	void CmdWrite2File(CString strFileName);
+	void SetRunningStatus(bool b);
+	afx_msg void OnNMRClickListCmd(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnModify();
+	afx_msg void OnPaste();
+	afx_msg void OnCopy();
+	afx_msg void OnDel();
+	afx_msg void OnDelAll();
 };

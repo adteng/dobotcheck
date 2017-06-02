@@ -24,9 +24,8 @@ public:
 	CScandReading(CWnd* pParent = NULL);   // 标准构造函数
 	virtual ~CScandReading();
 
-	void SetupPosition(float fXLen,float fYLen,int iX_sum,int iY_sum,int iZ_sum,const CDobotPoint &firstPoint);
+//	void SetupPosition(float fXLen,float fYLen,int iX_sum,int iY_sum,int iZ_sum,const CDobotPoint &firstPoint);
 	void DrawPointWithStatus();
-	void DrawPointWithStatus_bak();
 
 // 对话框数据
 	enum { IDD = IDD_DIALOG_M1 };
@@ -78,4 +77,6 @@ public:
 	afx_msg void OnBnClickedButtonSetParmeter();
 	afx_msg void OnBnClickedButton1();
 	afx_msg void OnBnClickedButton2();
+	float m_fR1;
+	float m_fR2;
 };

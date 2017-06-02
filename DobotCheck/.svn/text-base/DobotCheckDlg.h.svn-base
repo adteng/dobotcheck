@@ -22,7 +22,7 @@ public:
 	
 	CScandReading m_ScandCard;
 	CFlashCard    m_FlashCard;
-	CPressureCardNew m_PressureCardNew;
+	CPressureCard m_PressureCard;
 
 // 对话框数据
 	enum { IDD = IDD_DOBOTCHECK_DIALOG };

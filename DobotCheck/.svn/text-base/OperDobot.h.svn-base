@@ -19,8 +19,15 @@ Revision history:
 #pragma once
 #endif // _MSC_VER > 1000
 
-//#include "common/utility.h"
-#include "common/serialport.h"
+#include "Comm.h"
+#include <string.h>
+#include <list>
+#include <iostream>
+#include <fstream>
+using namespace std;
+
+unsigned int __stdcall ReadCom(void * param);
+
 //#include "common/CriticalLock.h"
 #define DOBOTDATABUFFERSIZE	42
 #define FOURZERO 0x00000000 ;
@@ -98,7 +105,7 @@ class OperDobot : public SerialPort
 protected:
 	int nStatSend;
 	string m_strCom,strErrInfo,strRX;
-	bool bIsOpen,bStatus;
+	bool bStatus;
 	byte byteDobot2PCData[DOBOTDATABUFFERSIZE+1];//
 	long lRecv,bList;
 	void * ListParam;
@@ -107,13 +114,12 @@ protected:
 	ofstream m_statofs;
 	string strPos;
 	CMDLIST m_CMDList;
-
 public:
 	OperDobot();
 	virtual ~OperDobot();
 	void SetLogInfoFun(void (*f)(const char *)){ logInfo =  f;}
-	CDobotPoint GetCurrentAbsolutePosition();
-	CAngle GetCurrentCAnglePosition();
+	virtual CDobotPoint GetCurrentAbsolutePosition();
+	virtual CAngle GetCurrentCAnglePosition();
 	CDobotPoint GetStartAbsolutePosition();
 	virtual void Move2AbsolutePosition(const CDobotPoint &pt,float angle = 0.0);
 	CDobotPoint Move2RelativePosition(const CRelativeSpace &sp);
@@ -141,15 +147,15 @@ public:
 
 	bool OpenCom();//打开串口
 	void SetCOM(const string& strCom);
-	void CloseCom(){if(bIsOpen){Close();bIsOpen=false;}};//关闭串口
-	bool IsOpenCom(){ return bIsOpen;};//关闭串口
+//	void CloseCom(){if(bIsOpen){Close();bIsOpen=false;}};//关闭串口
+//	bool IsOpenCom(){ return bIsOpen;};//关闭串口
 	virtual int ReadFromDobot();
 	virtual void SendOrderFromList();
 	int GetList();
 	int SendOrder2Dobot(DobotOrder &order);
-	void AddOrderList(DobotOrder &order);
-	void DobotStart();
-	void DobotStop();
+	virtual void AddOrderList(DobotOrder &order);
+	virtual void DobotStart();
+	virtual void DobotStop();
 	virtual void SetSpeed(float f1,float f2,float f3,float f4,float f5,float f6,float f7,float f8=0.0);
 	void (*ShowDobotStatus)(float f1,float f2,float f3,float f4,float f5,float f6,float f7,float f8,float f9,float f10);
 	virtual void PointMoving(int nAxis,bool bAngle);
@@ -158,6 +164,15 @@ public:
 	CardInf m_CardInfo[4];
 	CDobotPoint m_ReadMachePoint;
 	CDobotPoint m_WorkCenterPoint;
+
+	static void FloatToByte(float floatNum, unsigned char* byteArry);
+	static float Hex_To_Decimal(unsigned char *Byte, int num);//十六进制到浮点数
+	static void stringToHEX(const string& strTmp,unsigned char* ucHEX,int nstrLen);
+	static void charToHEX(char c,int& ucTmp);
+	static string& strTrim(string& strValue);
+	static string& strRTrim(string& strValue);
+	static string& strLTrim(string& strValue);
+	static string IToString(const int&,int nLen=0);
 };
 
 //extern CMDLIST m_CMDList;

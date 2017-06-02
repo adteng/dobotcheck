@@ -350,7 +350,7 @@ void CFlashCard::OnCbnSelendokCombo1()
 	string strLine;
 	for(int i=0;m_ifs.getline(cLine,80);i++)
 	{
-		strLine = cLine;strTrim(strLine);
+		strLine = cLine;OperDobot::strTrim(strLine);
 			int nPos = strLine.find (",");memset(sBuffer,0,16);
 			memcpy(sBuffer,strLine.c_str(),nPos);
 			m_f1 = atof(sBuffer);

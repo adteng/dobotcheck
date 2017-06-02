@@ -41,7 +41,35 @@ void OperDobot2::SendGetPoseOrder()
 	*/
 	delete [] cmd;
 }
-void OperDobot2::Move2AbsolutePosition(const CDobotPoint &pt,float angle)
+BufferE OperDobot2::CreateTimeWaitCmd(int timeout)
+{
+	uint8_t *cmd = new uint8_t[10];
+	cmd[0] = 0xAA;
+	cmd[1] = 0xAA;
+	cmd[2] = 6;
+	cmd[3] = 110;
+	cmd[4] = 0x03;
+	memcpy(cmd + 5,(char *)&timeout,4);
+	int8_t c = 0;
+	for(int i = 0; i< 6; i++)
+	{
+		c += cmd[3+i];
+	}
+	cmd[9] = 256 - c;
+	BufferE be;
+	be.pData = cmd;
+	be.iLen = 10;
+
+	TRACE("CreateTimeWaitCmd:");
+	for(int i = 0; i < be.iLen; i++)
+	{
+		TRACE("%02X",be.pData[i]);
+	}
+	TRACE("\n");
+
+	return be;
+}
+BufferE OperDobot2::CreateMove2AbsoluteCmd(const CDobotPoint &pt)
 {
 	PTPCmd cmdInfo;
 	memset(&cmdInfo,0,sizeof(PTPCmd));
@@ -67,23 +95,31 @@ void OperDobot2::Move2AbsolutePosition(const CDobotPoint &pt,float angle)
 		c += cmd[3+i];
 	}
 	cmd[22] = 256 - c;
+	BufferE e;
+	e.pData = cmd;
+	e.iLen = 23;
+	return e;
+}
+void OperDobot2::Move2AbsolutePosition(const CDobotPoint &pt,float angle)
+{
+	BufferE be = CreateMove2AbsoluteCmd(pt);
 	m_csList.Lock();
-	int nRet = WriteComm(cmd,23);
+	int nRet = WriteComm(be.pData,be.iLen);
 	m_csList.Unlock();
-	if(nRet < 23)
+	if(nRet < be.iLen)
 	{
 		logInfo("byteSendData data failure");
 	}
-	else if(nRet == 23)
+	else if(nRet == be.iLen)
 	{
 		logInfo("byteSendData data succeed");
 	}
-	for(int i = 0; i < 23; i++)
+	for(int i = 0; i < be.iLen; i++)
 	{
-		TRACE("%02X",cmd[i]);
+		TRACE("%02X",be.pData[i]);
 	}
 	TRACE("\n");
-	delete [] cmd;
+	delete [] be.pData;
 	
 	int iLoop = 0;
 	while(1)
@@ -94,14 +130,14 @@ void OperDobot2::Move2AbsolutePosition(const CDobotPoint &pt,float angle)
 	}
 }
 
-void OperDobot2::SetGrab(bool b)
+BufferE OperDobot2::CreateGrabCmd(bool b)
 {
 	uint8_t *cmd = new uint8_t[8];
 	cmd[0] = 0xAA;
 	cmd[1] = 0xAA;
 	cmd[2] = 4;
 	cmd[3] = 62;
-	cmd[4] = 0x01;
+	cmd[4] = 0x03;
 	if(b)
 	{
 		cmd[5] = 1;
@@ -118,10 +154,19 @@ void OperDobot2::SetGrab(bool b)
 		c += cmd[3+i];
 	}
 	cmd[7] = 256 - c;
+	BufferE e;
+	e.iLen = 8;
+	e.pData = cmd;
+	return e;
+}
+
+void OperDobot2::SetGrab(bool b)
+{
+	BufferE be = CreateGrabCmd(b);
 	m_csList.Lock();
-	int nRet = WriteComm(cmd,8);
+	int nRet = WriteComm(be.pData,be.iLen);
 	m_csList.Unlock();
-	delete [] cmd;
+	delete [] be.pData;
 }
 void OperDobot2::SetSpeed(float f1,float f2,float f3,float f4,float f5,float f6,float f7,float f8)
 {
@@ -148,8 +193,42 @@ void OperDobot2::SetSpeed(float f1,float f2,float f3,float f4,float f5,float f6,
 	m_csList.Lock();
 	int nRet = WriteComm(cmd,38);
 	m_csList.Unlock();
+
+	TRACE("SetSpeed:");
+	for(int i = 0; i < 38; i++)
+	{
+		TRACE("%02X",cmd[i]);
+	}
+	TRACE("\n");
+
 	delete [] cmd;
 }
+
+/*
+void OperDobot2::SetSpeed(float f1,float f2,float f3,float f4,float f5,float f6,float f7,float f8)
+{
+	uint8_t *cmd = new uint8_t[22];
+	cmd[0] = 0xAA;
+	cmd[1] = 0xAA;
+	cmd[2] = 18;
+	cmd[3] = 81;
+	cmd[4] = 0x03;
+	memcpy(cmd+5,(uint8_t *)&f1,4);
+	memcpy(cmd+9,(uint8_t *)&f2,4);
+	memcpy(cmd+13,(uint8_t *)&f3,4);
+	memcpy(cmd+17,(uint8_t *)&f4,4);
+	int8_t c = 0;
+	for(int i = 0; i< 18; i++)
+	{
+		c += cmd[3+i];
+	}
+	cmd[21] = 256 - c;
+	m_csList.Lock();
+	int nRet = WriteComm(cmd,22);
+	m_csList.Unlock();
+	delete [] cmd;
+}
+*/
 int OperDobot2::ReadFromDobot()
 {
 	int iRet = 0;
@@ -209,6 +288,24 @@ int OperDobot2::ReadFromDobot()
 			//m_bHavingRecvData = true;
 			switch(id)
 			{
+			case 71:
+				(*logInfo)("cmd 71...");
+				break;
+			case 81:
+				(*logInfo)("cmd 81...");
+				break;
+			case 31:
+				(*logInfo)("cmd go home...");
+				break;
+			case 243:
+				(*logInfo)("cmd start load...");
+				break;
+			case 244:
+				(*logInfo)("cmd stop load...");
+				break;
+			case 245:
+				(*logInfo)("cmd clear...");
+				break;
 			case 10:
 				//(*logInfo)("pos");
 				theDobotStatusCritical.Lock();
@@ -242,15 +339,26 @@ int OperDobot2::ReadFromDobot()
 		ShowDobotStatus(f1,f2,f3,f4,f5,f6,f7,f8,f9,f10);
 
 				break;
-				
 			default:
+				char sLog[24] = {0};
+				sprintf(sLog,"cmd %d respone",id);
+				(*logInfo)(sLog);
 				break;
 			}
 			delete [] pData;
 			return 0;
 		}
 		else
-			(*logInfo)("check failure");
+		{
+			char sLog[64] = {0};
+			sprintf(sLog,"check failure,c=%d,d=%d",c,d);
+			(*logInfo)(sLog);
+			if(c == -128 && d==-128)
+			{
+				delete [] pData;
+				return 0;
+			}
+		}
 		delete [] pData;
 	}
 	return -1;
@@ -267,6 +375,7 @@ void OperDobot2::DobotStart()
 	else
 	{
 		(*logInfo)("open com err");
+		AfxMessageBox("连接设备失败");
 		m_bRunning = false;
 		return;
 	}
@@ -349,5 +458,112 @@ void OperDobot2::AddOrderList(DobotOrder &order)
 	Move2AbsolutePosition(pt,0);
 }
 
+Pose OperDobot2::GetCurrentPoint2()
+{
+	theDobotStatusCritical.Lock();
+	Pose p = m_CurrentPos;
+	theDobotStatusCritical.Unlock();
+	return p;
+}
+BufferE OperDobot2::CreateGohomeCmd()
+{
+	uint8_t *cmd = new uint8_t[10];
+	cmd[0] = 0xAA;
+	cmd[1] = 0xAA;
+	cmd[2] = 0x06;
+	cmd[3] = 0x1F;
+	cmd[4] = 0x03;
+	cmd[5] = 0;
+	cmd[6] = 0;
+	cmd[7] = 0;
+	cmd[8] = 0;
+	cmd[9] = 0xDE;
+	BufferE e;
+	e.iLen = 10;
+	e.pData = cmd;
+	return e;
+}
+void OperDobot2::GoHome()
+{
+	BufferE be = CreateGohomeCmd();
+	m_csList.Lock();
+	int nRet = WriteComm(be.pData,be.iLen);
+	m_csList.Unlock();
+	delete [] be.pData;
+}
 
+void OperDobot2::ClearCmd()
+{
+	uint8_t *cmd = new uint8_t[6];
+	cmd[0] = 0xAA;
+	cmd[1] = 0xAA;
+	cmd[2] = 2;
+	cmd[3] = 245;
+	cmd[4] = 0x10;
+	int8_t c = 0;
+	for(int i = 0; i < 2; i++)
+	{
+		c += cmd[3+i];
+	}
+	cmd[5] = 256 - c;
+	m_csList.Lock();
+	int nRet = WriteComm(cmd,6);
+	m_csList.Unlock();
+	delete [] cmd;
+}
+void OperDobot2::SetCmdDownLoadStar(uint32_t totalLoop, uint32_t linePerLoop)
+{
+	uint8_t *cmd = new uint8_t[14];
+	cmd[0] = 0xAA;
+	cmd[1] = 0xAA;
+	cmd[2] = 10;
+	cmd[3] = 243;
+	cmd[4] = 0x01;
+	memcpy(cmd + 5,(char *)&totalLoop,4);
+	memcpy(cmd + 5 + 4,(char *)&linePerLoop,4);
+	int8_t c = 0;
+	for(int i = 0; i < 10; i++)
+	{
+		c += cmd[3+i];
+	}
+	cmd[13] = 256 - c;
+	//m_csList.Lock();
+	int nRet = WriteComm(cmd,14);
+	//m_csList.Unlock();
+	TRACE("begin\n");
+	for(int i = 0; i < 14; i++)
+	{
+		TRACE("%02X",cmd[i]);
+	}
+	TRACE("\n");
+
+	delete [] cmd;
+}
+void OperDobot2::SetCmdDownLoadStop()
+{
+	uint8_t *cmd = new uint8_t[6];
+	cmd[0] = 0xAA;
+	cmd[1] = 0xAA;
+	cmd[2] = 2;
+	cmd[3] = 244;
+	cmd[4] = 0x01;
+	int8_t c = 0;
+	for(int i = 0; i < 2; i++)
+	{
+		c += cmd[3+i];
+	}
+	cmd[5] = 256 - c;
+	//m_csList.Lock();
+	int nRet = WriteComm(cmd,6);
+	//m_csList.Unlock();
+
+	TRACE("end\n");
+	for(int i = 0; i < 6; i++)
+	{
+		TRACE("%02X",cmd[i]);
+	}
+	TRACE("\n");
+
+	delete [] cmd;
+}
 

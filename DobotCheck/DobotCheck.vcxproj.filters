@@ -50,15 +50,6 @@
     <ClInclude Include="common\config.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="common\des.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="common\serialport.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="common\utility.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="ScandReading.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -77,9 +68,6 @@
     <ClInclude Include="ACard.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="CommDll.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Crc32.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -90,6 +78,15 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="ScandOP.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Comm.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DownloadSettingDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ModifyDlg.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -104,15 +101,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="OperDobot.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="common\des.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="common\serialport.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="common\utility.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="ScandReading.cpp">
@@ -140,6 +128,15 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="ScandOP.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Comm.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DownloadSettingDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ModifyDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

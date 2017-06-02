@@ -31,8 +31,11 @@ CScandReading::CScandReading(CWnd* pParent /*=NULL*/)
 	, m_iDevH(0)
 	, m_iFeeValue(0)
 	, m_fLayerSpaceLen(0)
+	, m_fR1(0)
+	, m_fR2(0)
 {
 
+	m_fR2 = 0.0f;
 }
 
 CScandReading::~CScandReading()
@@ -65,6 +68,9 @@ void CScandReading::DoDataExchange(CDataExchange* pDX)
 	DDV_MinMaxInt(pDX, m_iDevW, 1, 500);
 	DDV_MinMaxInt(pDX, m_iDevH, 1, 300);
 	DDV_MinMaxInt(pDX, m_iFeeValue, 1, 500);
+	DDX_Text(pDX, IDC_EDIT_R1, m_fR1);
+	//  DDX_Text(pDX, IDC_EDIT_R2, m_fR2);
+	DDX_Text(pDX, IDC_EDIT_R2, m_fR2);
 }
 
 BEGIN_MESSAGE_MAP(CScandReading, CDialogEx)
@@ -101,12 +107,10 @@ void CScandReading::UpdateParameter()
 	m_scand.m_devInfo.m_iDevL = m_iDevL;
 	m_scand.m_devInfo.m_iDevW = m_iDevW;
 	m_scand.m_devInfo.m_iFeeValue = m_iFeeValue;
-	m_scand.m_sysInfo.m_fLayerSpaceLen = m_fLayerSpaceLen;
-	m_scand.m_sysInfo.m_fXLen = m_fXLen;
-	m_scand.m_sysInfo.m_fYLen = m_fYLen;
-	m_scand.m_sysInfo.m_iLayer_Sum = m_iLayer_Sum;
-	m_scand.m_sysInfo.m_iX_Sum = m_iX_Sum;
-	m_scand.m_sysInfo.m_iY_Sum = m_iY_Sum;
+	m_scand.m_sysInfo.m_fR1 = m_fR1;
+	m_scand.m_sysInfo.m_fR2 = m_fR2;
+	m_scand.m_sysInfo.m_fH = m_iLayer_Sum;
+	m_scand.m_sysInfo.m_fBH = m_iDevH;
 }
 
 
@@ -131,8 +135,8 @@ void CScandReading::OnBnClickedBeginScand()
 	UpdateData(FALSE);
 
 	m_scand.m_FirstScandPoint = g_OperDobot->m_WorkCenterPoint;
-	m_scand.m_FirstScandPoint.x -= m_fXLen/2.0;
-	m_scand.m_FirstScandPoint.y -= m_fYLen/2.0;
+	//m_scand.m_FirstScandPoint.x -= m_fXLen/2.0;
+	//m_scand.m_FirstScandPoint.y -= m_fYLen/2.0;
 	m_scand.m_FirstScandPoint.z += m_iDevH;
 	m_bRunning = TRUE;
 	unsigned int nThreadAddr;
@@ -287,46 +291,108 @@ void CScandReading::OnBnClickedButtonCreateReport()
 	m_ofs << "\t终端高度（毫米）：\t" << m_iDevH << endl;
 	m_ofs << endl;
 	m_ofs << "测试范围参数：" << endl;
-	m_ofs << "\t测试范围，横向（毫米）：\t" << m_fYLen << endl;
-	m_ofs << "\t测试范围，纵向（毫米）：\t" << m_fXLen << endl;
-	m_ofs << "\t测试范围，高度（毫米）：\t" << m_fLayerSpaceLen*m_iLayer_Sum << endl;
+	m_ofs << "\t测试小圆半径（毫米）：\t" << m_fR1<< endl;
+	m_ofs << "\t测试大圆半径（毫米）：\t" << m_fR2 << endl;
+	m_ofs << "\t测试范围高度（毫米）：\t" << m_fLayerSpaceLen << endl;
+	/*
 	m_ofs << "\t每层测试点数，横向：\t" << m_iY_Sum << endl;
 	m_ofs << "\t每层测试点数，纵向：\t" << m_iX_Sum  << endl;
 	m_ofs << "\t每平面共点数：\t" << m_iY_Sum*m_iX_Sum << endl;
 	m_ofs << "\t每点横向距离（毫米）：\t" << m_fYLen/m_iY_Sum << endl;
-	m_ofs << "\t每点纵向距离（毫米）：\t" << m_fXLen/m_iX_Sum << endl;
-	m_ofs << "\t每点高度距离（毫米）：\t" << m_fLayerSpaceLen << endl;
-	m_ofs << "\t测试层数：\t" << m_iLayer_Sum  << endl;
+	m_ofs << "\t每点纵向距离（毫米）：\t" << m_fXLen/m_iX_Sum << endl;*/
+	m_ofs << "\t每点高度距离（毫米）：\t" << m_fLayerSpaceLen/4.0 << endl;
+	m_ofs << "\t测试层数：\t" << 5  << endl;
 	m_ofs << endl;
 	m_ofs << "测试结果记录：" << endl;
 	int iTotalSucceedSum = 0;
 	for(int z=0;z<m_iLayer_Sum;z++)
 	{
 		int iSucceedSum = GetSucceedPointSum(z);iTotalSucceedSum+=iSucceedSum;
-		m_ofs << "\t第" << z+1 << "层共" <<  m_iY_Sum*m_iX_Sum << "个点，其中" << iSucceedSum << "个点成功扣费，"<< m_iY_Sum*m_iX_Sum-iSucceedSum << "个点扣费失败。" <<endl;
+		m_ofs << "\t第" << z+1 << "层共" <<  (z==0||z==4?5:9) << "个点，其中" << iSucceedSum << "个点成功扣费，"<< (z==0||z==4?5:9)-iSucceedSum << "个点扣费失败。" <<endl;
 	}
-	m_ofs << "\t总测试点数：" << m_iY_Sum*m_iX_Sum*m_iLayer_Sum << "，其中成功点数：" << iTotalSucceedSum << "，失败点数：" << m_iY_Sum*m_iX_Sum*m_iLayer_Sum-iTotalSucceedSum << endl;
+	m_ofs << "\t总测试点数：" << 37 << "，其中成功点数：" << iTotalSucceedSum << "，失败点数：" << 37-iTotalSucceedSum << endl;
 	m_ofs << endl;
 	m_ofs << "测试前后的卡片信息" << endl;
 	for(int i=0;i<4;i++)
 		m_ofs <<"\t卡号：" << g_OperDobot->m_CardInfo[i].szCardNo << "\t位置：" << i+1 << "\t测试前余额（分）："<<  g_OperDobot->m_CardInfo[i].lInitFee  << "\t测试后余额（分）：" << g_OperDobot->m_CardInfo[i].lEndWFee << endl;
 	m_ofs << endl;
 	m_ofs << "每层每点直观对照表（O表示成功，X表示失败）" << endl;
-	for(int z = 0; z < m_iLayer_Sum; z++)
+	for(int z = 0; z < 5; z++)
 	{
 		m_ofs << "\t第" << z+1 << "层：" << endl;
-		for(int x = 0;x < m_iX_Sum; x++)
+		int iNo = (((z<1)?1:z)-1) * 9 + (z>0)* 5 - 1;
+		if(z == 0 || z == 4)
 		{
-			for(int y = 0;y < m_iY_Sum; y++)
-			{
-				if(m_scand.m_iWorkingPoint[x][y][z].iPointStatus==2)
-					m_ofs << "\tO\t";
-				else
-					m_ofs << "\tX\t";
-			}
-			m_ofs << endl;
+			if(m_scand.m_space[iNo + 2].iPointStatus==2) 
+				m_ofs << "\t\t\t.\tO\t." << endl;
+			else 
+				m_ofs << "\t\t\t.\tX\t." << endl;
+			m_ofs << endl << endl;
+
+			if(m_scand.m_space[iNo + 1].iPointStatus==2) 
+				m_ofs << "\t\t\tO";
+			else 
+				m_ofs << "\t\t\tX";
+			if(m_scand.m_space[iNo + 5].iPointStatus==2) 	
+				m_ofs << "\tO";
+			else
+				m_ofs << "\tX";
+			if(m_scand.m_space[iNo + 3].iPointStatus==2)
+				m_ofs << "\tO" << endl;
+			else
+				m_ofs << "\tX" << endl;
+			m_ofs << endl << endl;
+			if(m_scand.m_space[iNo + 4].iPointStatus==2)
+				m_ofs << "\t\t\t.\tO\t." << endl;
+			else
+				m_ofs << "\t\t\t.\tX\t." << endl;
 		}
-		m_ofs << endl;
+		else
+		{
+			if(m_scand.m_space[iNo + 2].iPointStatus==2) 
+				m_ofs << "\t\t.\t.\tO\t.\t." << endl;
+			else
+				m_ofs << "\t\t.\t.\tX\t.\t." << endl;
+			m_ofs << endl << endl;
+			if(m_scand.m_space[iNo + 7].iPointStatus==2) 
+				m_ofs << "\t\t.\t.\tO\t.\t." << endl;
+			else
+				m_ofs << "\t\t.\t.\tX\t.\t." << endl;
+			m_ofs << endl << endl;
+
+			if(m_scand.m_space[iNo + 1].iPointStatus==2) 
+				m_ofs << "\t\tO";
+			else
+				m_ofs << "\t\tX";
+			if(m_scand.m_space[iNo + 6].iPointStatus==2) 
+				m_ofs << "\tO";
+			else
+				m_ofs << "\tX";
+			if(m_scand.m_space[iNo + 9].iPointStatus==2) 
+				m_ofs << "\tO";
+			else
+				m_ofs << "\tX";
+			if(m_scand.m_space[iNo + 8].iPointStatus==2) 
+				m_ofs << "\tO";
+			else
+				m_ofs << "\tX";
+			if(m_scand.m_space[iNo + 3].iPointStatus==2) 
+				m_ofs << "\tO" << endl;
+			else
+				m_ofs << "\tX" << endl;
+			m_ofs << endl << endl;
+			
+			if(m_scand.m_space[iNo + 5].iPointStatus==2) 
+				m_ofs << "\t\t.\t.\tO\t.\t." << endl;
+			else
+				m_ofs << "\t\t.\t.\tX\t.\t." << endl;
+			m_ofs << endl << endl;
+			if(m_scand.m_space[iNo + 4].iPointStatus==2) 
+				m_ofs << "\t\t.\t.\tO\t.\t." << endl;
+			else
+				m_ofs << "\t\t.\t.\tX\t.\t." << endl;
+		}
+		m_ofs << endl << endl;
 	}
 	m_ofs.flush();
 	m_ofs.close();
@@ -355,8 +421,10 @@ BOOL CScandReading::OnInitDialog()
 	m_fYLen = 80;
 	m_iX_Sum = 6;
 	m_iY_Sum = 6;
-	m_iLayer_Sum = 3;
-	m_fLayerSpaceLen = 5.0;//m_ZLen = 18;
+	m_iLayer_Sum = 5;
+	m_fR1 = 15.0;
+	m_fR2 = 25.0;
+	m_fLayerSpaceLen = 50.0;//m_ZLen = 18;
 	m_comboLayer.ResetContent();
 	for(int i = 0;i < m_iLayer_Sum; i++)
 	{
@@ -365,7 +433,7 @@ BOOL CScandReading::OnInitDialog()
 		m_comboLayer.AddString(str);
 	}
 	m_comboLayer.SetCurSel(0);
-	SetTimer(1,800,NULL);
+	//SetTimer(1,800,NULL);
 
 	m_MarkLocationDlg = new CMarkLocationDlg();
 	m_MarkLocationDlg->Create(IDD_DIALOG_M5);
@@ -399,7 +467,7 @@ BOOL CScandReading::OnInitDialog()
 	pt.x = 40;
 	pt.y = 40;
 	pt.z = 10;
-	m_scand.SetupPosition(0,0,0,0,0,pt);
+	m_scand.SetupPosition(0,0,0,0,pt);
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 异常: OCX 属性页应返回 FALSE
 }
@@ -480,158 +548,6 @@ void CScandReading::ShowBitmap(CDC *pDC, CString BmpName)
 }  
 
 
-void CScandReading::DrawPointWithStatus_bak()
-{
-	DrawIcon(0);
-	DrawIcon(1);
-	UpdateData(TRUE);
-	if(m_iY_Sum < 1 || m_iX_Sum < 1 || m_fXLen < 1 || m_fYLen < 1 || m_fLayerSpaceLen < 1 || m_iLayer_Sum < 1 || m_iY_Sum > 50 || m_iX_Sum > 50 || m_iLayer_Sum > 8) return;
-
-	CRect rectPar;
-	g_wmd->GetClientRect(rectPar);
-	int iHSPLen = rectPar.Height() / m_iX_Sum;
-	int iWSPLen = rectPar.Width()  / m_iY_Sum;
-
-	DrawBackGround();
-
-	CDC* pDC = g_wmd->GetDC();
-	/*
-	pDC->GetBkColor();
-	CBrush *bgbr = new CBrush(pDC->GetBkColor());
-	pDC->FillRect(rectPar,bgbr);
-	delete bgbr;
-	*/
-	CString strWStr,strHStr;
-	strWStr.Format("%0.0f",m_fYLen);
-	strHStr.Format("%0.0f",m_fXLen);
-
-	CPen *penXY = new CPen(PS_SOLID, 0, RGB(255, 255, 255));
-	CPen *pOldPen = pDC->SelectObject(penXY);
-	/*
-	 //生成X轴
-	pDC->MoveTo(10,10);
-	pDC->LineTo(rectPar.Width()/2,10);
-	pDC->TextOutA(rectPar.Width()/2,2,strWStr);
-	pDC->MoveTo(rectPar.Width()/2 + 25,10);
-	pDC->LineTo(rectPar.Width()-10,10);
-	pDC->LineTo(rectPar.Width()-10-8,10-8);//箭头
-	pDC->MoveTo(rectPar.Width()-10,10);//箭头
-	pDC->LineTo(rectPar.Width()-10-8,10+8);//箭头
-	 //生成Y轴
-	pDC->MoveTo(10,10);
-	pDC->LineTo(10,rectPar.Height()/2);
-	pDC->TextOutA(-2,rectPar.Height()/2,strHStr);
-	pDC->MoveTo(10,rectPar.Height()/2+18);
-	pDC->LineTo(10,rectPar.Height()-10);
-	pDC->LineTo(10-8,rectPar.Height()-10-8);//箭头
-	pDC->MoveTo(10,rectPar.Height()-10);//箭头
-	pDC->LineTo(10+8,rectPar.Height()-10-8);//箭头
-	*/
-	pDC->MoveTo(10,rectPar.Height()/2.0);
-	pDC->LineTo(rectPar.Width(),rectPar.Height()/2.0);
-	pDC->MoveTo(rectPar.Width()/2.0,10);
-	pDC->LineTo(rectPar.Width()/2.0,rectPar.Height());
-	delete penXY;
-	//开始画外围框
-	CPen *penBorder = new CPen(PS_SOLID, 3, RGB(255, 0, 0));
-	pOldPen = pDC->SelectObject(penBorder);
-	pDC->MoveTo(0,0);
-	pDC->LineTo(rectPar.Width()/2.0,0);
-	pDC->TextOutA(rectPar.Width()/2.0,-10,"120");
-	pDC->MoveTo(rectPar.Width()/2.0 + 25,0);
-	pDC->LineTo(rectPar.Width(),0);
-	pDC->LineTo(rectPar.Width(),rectPar.Height());
-	pDC->LineTo(0,rectPar.Height());
-	pDC->LineTo(0,rectPar.Height()/2.0+10);
-	pDC->TextOutA(-10,rectPar.Height()/2.0,"120");
-	pDC->MoveTo(0,rectPar.Height()/2.0-2);
-	pDC->LineTo(0,0);
-	pDC->SelectObject(pOldPen);
-	delete penBorder;
-
-	CPen *pen0 = new CPen(PS_SOLID, 5, RGB(255, 255, 255));
-	pOldPen = pDC->SelectObject(pen0);
-	//右
-	pDC->MoveTo(rectPar.Width()/2.0 + 25*cos(PI/6.0) ,rectPar.Height()/2.0 +  25 *sin(PI/6.0));
-	pDC->AngleArc(rectPar.Width()/2.0,rectPar.Height()/2.0,25,-30,60);
-	pDC->MoveTo(rectPar.Width()/2.0 + 50*cos(PI/6.0) ,rectPar.Height()/2.0 +  50 *sin(PI/6.0));
-	pDC->AngleArc(rectPar.Width()/2.0,rectPar.Height()/2.0,50,-30,60);
-	pDC->MoveTo(rectPar.Width()/2.0 + 100*cos(PI/6.0) ,rectPar.Height()/2.0 +  100 *sin(PI/6.0));
-	pDC->AngleArc(rectPar.Width()/2.0,rectPar.Height()/2.0,100,-30,60);
-	pDC->MoveTo(rectPar.Width()/2.0 + 150*cos(PI/6.0) ,rectPar.Height()/2.0 +  150 *sin(PI/6.0));
-	pDC->AngleArc(rectPar.Width()/2.0,rectPar.Height()/2.0,150,-30,60);
-	//左
-	pDC->MoveTo(rectPar.Width()/2.0 - 25*cos(PI/6.0) ,rectPar.Height()/2.0 -  25 *sin(PI/6.0));
-	pDC->AngleArc(rectPar.Width()/2.0,rectPar.Height()/2.0,25,150,60);
-	pDC->MoveTo(rectPar.Width()/2.0 - 50*cos(PI/6.0) ,rectPar.Height()/2.0 -  50 *sin(PI/6.0));
-	pDC->AngleArc(rectPar.Width()/2.0,rectPar.Height()/2.0,50,150,60);
-	pDC->MoveTo(rectPar.Width()/2.0 - 100*cos(PI/6.0) ,rectPar.Height()/2.0 -  100 *sin(PI/6.0));
-	pDC->AngleArc(rectPar.Width()/2.0,rectPar.Height()/2.0,100,150,60);
-	pDC->MoveTo(rectPar.Width()/2.0 - 150*cos(PI/6.0) ,rectPar.Height()/2.0 -  150 *sin(PI/6.0));
-	pDC->AngleArc(rectPar.Width()/2.0,rectPar.Height()/2.0,150,150,60);
-	pDC->Ellipse(rectPar.Width()/2.0-5,rectPar.Height()/2.0-5,rectPar.Width()/2.0+5,rectPar.Height()/2.0+5);
-	pDC->SelectObject(pOldPen);
-	delete pen0;
-
-	int z = m_comboLayer.GetCurSel();
-	for(int w=0;w<m_iY_Sum;w++)
-		for(int h=0;h<m_iX_Sum;h++)
-		{
-			CPen *pen = new CPen(PS_SOLID, 0, RGB(255, 0, 0));
-			pOldPen = pDC->SelectObject(pen);
-			
-			CBrush *brush1 = new CBrush(RGB(255, 0, 0));
-			CBrush *brush2 = new CBrush(RGB(0, 255, 0));
-			//CBrush *brush3 = new CBrush(RGB(0, 0, 255));
-			
-			if(m_scand.m_iWorkingPoint[h][w][z].iPointStatus == 0)//未处理的点
-			{
-				pDC->SelectStockObject(NULL_BRUSH);
-			}
-			else if(m_scand.m_iWorkingPoint[h][w][z].iPointStatus == 1)//正在处理的点
-			{
-				static bool bFlashLight = true;
-				if(bFlashLight)
-					pDC->SelectObject(brush1);
-				else
-					pDC->SelectObject(brush2);
-				bFlashLight = !bFlashLight;
-			}
-			else if(m_scand.m_iWorkingPoint[h][w][z].iPointStatus == 2)//处理成功的点
-			{
-				pDC->SelectObject(brush2);
-			}
-			else if(m_scand.m_iWorkingPoint[h][w][z].iPointStatus == 3)//处理失败的点
-			{
-				pDC->SelectObject(brush1);
-			}
-
-			float fDiameter; 
-			if(iWSPLen > iHSPLen)
-			{
-				fDiameter = iHSPLen/2.0;
-			}
-			else 
-			{
-				fDiameter = iWSPLen/2.0;
-			}
-			int iPointW = w * iWSPLen + iWSPLen/2.0;//中心点
-			int iPointH = h * iHSPLen + iHSPLen/2.0;//中心点
-
-			//CRect rect1( w * iWSPLen,h * iHSPLen ,(w+1) * iWSPLen,(h + 1) * iHSPLen);
-			//pDC->Rectangle(rect1);
-
-			CRect rect(iPointW - fDiameter/2.0,iPointH - fDiameter/2.0,iPointW + fDiameter/2.0,iPointH + fDiameter/2.0);
-			pDC-> Ellipse (rect);
-
-			pDC->SelectObject(pOldPen);
-			delete brush1;
-			delete brush2;
-			//delete brush3;
-			delete pen;
-		}
-	ReleaseDC(pDC);
-}
 void CScandReading::DrawPointWithStatus()
 {
 	DrawIcon(0);
@@ -659,7 +575,7 @@ void CScandReading::DrawPointWithStatus()
 	pDC->MoveTo(rectPar.Width()/2.0,10);
 	pDC->LineTo(rectPar.Width()/2.0,rectPar.Height());
 	pDC->SelectObject(pOldPen);
-	
+	delete penXY;
 	//开始画外围框
 	CPen *penBorder = new CPen(PS_SOLID, 3, RGB(255, 0, 0));
 	pOldPen = pDC->SelectObject(penBorder);
@@ -675,7 +591,8 @@ void CScandReading::DrawPointWithStatus()
 	pDC->MoveTo(0,rectPar.Height()/2.0-2);
 	pDC->LineTo(0,0);
 	pDC->SelectObject(pOldPen);
-	
+	delete penBorder;
+
 	//开始画工作范围框
 	float fWLen = m_fYLen/iMaxWidth * rectPar.Width();//工作区域的长
 	float fHLen = m_fXLen/iMaxHeight * rectPar.Height();//工作区域的宽
@@ -683,10 +600,10 @@ void CScandReading::DrawPointWithStatus()
 	float fHSpace = fHLen/(m_iX_Sum-1);
 	POINT center;
 	center.x = rectPar.Width()/2.0;center.y = rectPar.Height()/2.0;
+
 	CPen *penWorkRegion = new CPen(PS_DASH, 0, RGB(0, 0, 255));
 	pOldPen = pDC->SelectObject(penWorkRegion);
 	pDC->SelectStockObject(NULL_BRUSH);
-	//pDC->Rectangle(center.x-fWLen/2.0,center.y-fHLen/2.0,center.x+fWLen/2.0,center.y+fHLen/2.0);
 	float R1 = rectPar.Height()/2.0 * 4.0/5.0 * 0.65;
 	CRect rect1(center.x-R1,center.y-R1,center.x+R1,center.y+R1);
 	pDC-> Ellipse (rect1);
@@ -719,17 +636,10 @@ void CScandReading::DrawPointWithStatus()
 	pDC->SelectObject(pOldPen);
 	delete pen0;
 	*/
-	delete penBorder;
-	delete penXY;
 	delete penWorkRegion;
 
 	int z = m_comboLayer.GetCurSel();
-
-/*
-	for(int w=0;w<m_iY_Sum;w++)
-		for(int h=0;h<m_iX_Sum;h++)
-*/
-	int sum = (z==0 || z==5) ? 5:9;
+	int sum = (z==0 || z==4) ? 5:9;
 	for(int i = 0; i <  sum; i++)
 		{
 			CPen *pen = new CPen(PS_SOLID, 0, RGB(255, 0, 0));
@@ -737,12 +647,14 @@ void CScandReading::DrawPointWithStatus()
 			
 			CBrush *brushRed = new CBrush(RGB(255, 0, 0));
 			CBrush *brushGreen = new CBrush(RGB(0, 255, 0));
+
+			int iPos = (z>0) * 5 + (z>0?z-1:z) * 9 + i;
 			
-			if(m_scand.m_space[z==0?0:5 + (z==0?z:z-1) * 9+i].iPointStatus == 0)//未处理的点
+			if(m_scand.m_space[iPos].iPointStatus == 0)//未处理的点
 			{
 				pDC->SelectStockObject(NULL_BRUSH);
 			}
-			else if(m_scand.m_space[z==0?0:5 + (z==0?z:z-1) * 9+i].iPointStatus == 1)//正在处理的点
+			else if(m_scand.m_space[iPos].iPointStatus == 1)//正在处理的点
 			{
 				static bool bFlashLight = true;
 				if(bFlashLight)
@@ -751,11 +663,11 @@ void CScandReading::DrawPointWithStatus()
 					pDC->SelectObject(brushGreen);
 				bFlashLight = !bFlashLight;
 			}
-			else if(m_scand.m_space[z==0?0:5 + (z==0?z:z-1) * 9+i].iPointStatus == 2)//处理成功的点
+			else if(m_scand.m_space[iPos].iPointStatus == 2)//处理成功的点
 			{
 				pDC->SelectObject(brushGreen);
 			}
-			else if(m_scand.m_space[z==0?0:5 + (z==0?z:z-1) * 9+i].iPointStatus == 3)//处理失败的点
+			else if(m_scand.m_space[iPos].iPointStatus == 3)//处理失败的点
 			{
 				pDC->SelectObject(brushRed);
 			}
@@ -770,30 +682,24 @@ void CScandReading::DrawPointWithStatus()
 				fDiameter = fWSpace*2/3.0;
 			}
 			if(fDiameter > 50) fDiameter = 50;
-			//int iPointW = center.x-fWLen/2.0 + w * fWSpace;  //w * iWSPLen + iWSPLen/2.0;//中心点
-			//int iPointH = center.y-fHLen/2.0 + h * fHSpace;  //h * iHSPLen + iHSPLen/2.0;//中心点
-
-
-			//CRect rect1( w * iWSPLen,h * iHSPLen ,(w+1) * iWSPLen,(h + 1) * iHSPLen);
-			//pDC->Rectangle(rect1);
 			float x,y;
 			switch(i)
 			{
 			case 0:
-				x = center.x - R2;
+				x = center.x - R1;
 				y = center.y;
 				break;
 			case 1:
 				x = center.x;
-				y = center.y - R2;
+				y = center.y - R1;
 				break;
 			case 2:
-				x = center.x + R2;
+				x = center.x + R1;
 				y = center.y;
 				break;
 			case 3:
 				x = center.x;
-				y = center.y + R2;
+				y = center.y + R1;
 				break;
 			case 4:
 				if(z == 0 || z == 4)
@@ -804,19 +710,19 @@ void CScandReading::DrawPointWithStatus()
 				else
 				{
 				x = center.x;
-				y = center.y + R1;
+				y = center.y + R2;
 				}
 				break;
 			case 5:
-				x = center.x - R1;
+				x = center.x - R2;
 				y = center.y;
 				break;
 			case 6:
 				x = center.x;
-				y = center.y - R1;
+				y = center.y - R2;
 				break;
 			case 7:
-				x = center.x + R1;
+				x = center.x + R2;
 				y = center.y;
 				break;
 			case 8:
@@ -833,17 +739,33 @@ void CScandReading::DrawPointWithStatus()
 			pDC->SelectObject(pOldPen);
 			delete brushRed;
 			delete brushGreen;
-			//delete brush3;
 			delete pen;
 		}
 	ReleaseDC(pDC);
 }
 int CScandReading::GetSucceedPointSum(int z)
 {
+	int star,end;
+	if(z==0)
+	{
+		star=0;
+		end = star+5;
+	}
+	else if(0 < z || z < 5)
+	{
+		star= 5+(z-1)*9;
+		end = star+9;
+	}
+	else
+	{
+		star= 5+(z-1)*9;
+		end = star+5;
+	}
 	int iSucceedSum = 0;
-	for(int x = 0; x < m_iX_Sum; x++)
-		for(int y = 0; y < m_iY_Sum; y++)
-			if(m_scand.m_iWorkingPoint[x][y][z].iPointStatus == 2) iSucceedSum++;
+	for(SPACE::iterator it = m_scand.m_space.begin() + star;it < m_scand.m_space.begin() + end; ++it)
+	{
+		if(it->iPointStatus == 2) iSucceedSum++;
+	}
 	return iSucceedSum;
 }
 
@@ -1004,8 +926,8 @@ void CScandReading::OnBnClickedButton1()
 	UpdateData(FALSE);
 
 	m_scand.m_FirstScandPoint = g_OperDobot->m_WorkCenterPoint;
-	m_scand.m_FirstScandPoint.x -= m_fXLen/2.0;
-	m_scand.m_FirstScandPoint.y -= m_fYLen/2.0;
+	//m_scand.m_FirstScandPoint.x -= m_fXLen/2.0;
+	//m_scand.m_FirstScandPoint.y -= m_fYLen/2.0;
 	m_scand.m_FirstScandPoint.z += m_iDevH;
 	m_bRunning = TRUE;
 	unsigned int nThreadAddr;
@@ -1037,8 +959,8 @@ void CScandReading::OnBnClickedButton2()
 	UpdateData(FALSE);
 
 	m_scand.m_FirstScandPoint = g_OperDobot->m_WorkCenterPoint;
-	m_scand.m_FirstScandPoint.x -= m_fXLen/2.0;
-	m_scand.m_FirstScandPoint.y -= m_fYLen/2.0;
+	//m_scand.m_FirstScandPoint.x -= m_fXLen/2.0;
+	//m_scand.m_FirstScandPoint.y -= m_fYLen/2.0;
 	m_scand.m_FirstScandPoint.z += m_iDevH;
 	m_bRunning = TRUE;
 	unsigned int nThreadAddr;

@@ -20,4 +20,5 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	CString m_strFlashFileName;
+	afx_msg void OnBnClickedOk();
 };

@@ -105,17 +105,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ACard.h" />
-    <ClInclude Include="CommDll.h" />
+    <ClInclude Include="Comm.h" />
     <ClInclude Include="common\config.h" />
-    <ClInclude Include="common\des.h" />
-    <ClInclude Include="common\serialport.h" />
-    <ClInclude Include="common\utility.h" />
     <ClInclude Include="Crc32.h" />
     <ClInclude Include="DobotCheck.h" />
     <ClInclude Include="DobotCheckDlg.h" />
+    <ClInclude Include="DownloadSettingDlg.h" />
     <ClInclude Include="FlashCard.h" />
     <ClInclude Include="FlashFileNameDlg.h" />
     <ClInclude Include="MarkLocationDlg.h" />
+    <ClInclude Include="ModifyDlg.h" />
     <ClInclude Include="OperDobot.h" />
     <ClInclude Include="OperDobot2.h" />
     <ClInclude Include="PressureCard.h" />
@@ -127,14 +126,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ACard.cpp" />
-    <ClCompile Include="common\des.cpp" />
-    <ClCompile Include="common\serialport.cpp" />
-    <ClCompile Include="common\utility.cpp" />
+    <ClCompile Include="Comm.cpp" />
     <ClCompile Include="DobotCheck.cpp" />
     <ClCompile Include="DobotCheckDlg.cpp" />
+    <ClCompile Include="DownloadSettingDlg.cpp" />
     <ClCompile Include="FlashCard.cpp" />
     <ClCompile Include="FlashFileNameDlg.cpp" />
     <ClCompile Include="MarkLocationDlg.cpp" />
+    <ClCompile Include="ModifyDlg.cpp" />
     <ClCompile Include="OperDobot.cpp" />
     <ClCompile Include="OperDobot2.cpp" />
     <ClCompile Include="PressureCard.cpp" />
